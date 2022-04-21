@@ -119,6 +119,7 @@ export default class TradeGp {
    */
   readonly outputAmount: CurrencyAmount<Currency>
   readonly outputAmountWithoutFee?: CurrencyAmount<Currency>
+
   /**
    * Trade fee
    */

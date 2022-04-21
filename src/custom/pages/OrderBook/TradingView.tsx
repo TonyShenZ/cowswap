@@ -1,0 +1,23 @@
+import { useDarkModeManager } from '@src/custom/state/user/hooks'
+import TradingViewChart from '../../components/TradingViewChart'
+import { ChartProperties } from './styleds'
+
+// function getLocalLanguage() {
+//   return navigator.language.split('-')[0] || 'en'
+// }
+
+export default function TradingView() {
+  const [darkMode] = useDarkModeManager()
+  const cOptions: ChartProperties = {
+    locale: 'en',
+    debug: false,
+    fullscreen: false,
+    symbol: 'BTCUSDT',
+    interval: '60',
+    theme: darkMode ? 'Dark' : 'Light',
+    allow_symbol_change: true,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    autosize: true,
+  }
+  return <TradingViewChart chartProperties={cOptions} />
+}

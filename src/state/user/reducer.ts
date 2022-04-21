@@ -80,7 +80,7 @@ export const initialState: UserState = {
   arbitrumAlphaAcknowledged: false,
   matchesDarkMode: false,
   optimismAlphaAcknowledged: false,
-  userDarkMode: null,
+  userDarkMode: true,
   userExpertMode: false,
   recipientToggleVisible: false,
   userLocale: null,

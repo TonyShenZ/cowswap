@@ -22,7 +22,15 @@ import { useActiveWeb3React } from '../../hooks/web3'
 import { isAddress } from 'utils'
 import { AppState } from 'state'
 import { useCurrencyBalances } from '../wallet/hooks'
-import { Field, replaceSwapState, selectCurrency, setRecipient, switchCurrencies, typeInput } from './actions'
+import {
+  Field,
+  replaceSwapState,
+  selectCurrency,
+  setLimitPrice,
+  setRecipient,
+  switchCurrencies,
+  typeInput,
+} from './actions'
 import { SwapState } from './reducer'
 import { truncateOnMaxDecimals } from 'utils/format'
 
@@ -35,6 +43,7 @@ export function useSwapActionHandlers(): {
   onSwitchTokens: () => void
   onUserInput: (field: Field, typedValue: string) => void
   onChangeRecipient: (recipient: string | null) => void
+  onLimitPriceInput: (limitPrice: string) => void
 } {
   const dispatch = useAppDispatch()
   const onCurrencySelection = useCallback(
@@ -55,7 +64,16 @@ export function useSwapActionHandlers(): {
 
   const onUserInput = useCallback(
     (field: Field, typedValue: string) => {
+      console.log(typedValue)
+
       dispatch(typeInput({ field, typedValue }))
+    },
+    [dispatch]
+  )
+
+  const onLimitPriceInput = useCallback(
+    (limitPrice: string) => {
+      dispatch(setLimitPrice({ limitPrice }))
     },
     [dispatch]
   )
@@ -71,6 +89,7 @@ export function useSwapActionHandlers(): {
     onSwitchTokens,
     onCurrencySelection,
     onUserInput,
+    onLimitPriceInput,
     onChangeRecipient,
   }
 }
@@ -289,6 +308,7 @@ export function queryParametersToSwapState(parsedQs: ParsedQs): SwapState {
     [Field.OUTPUT]: {
       currencyId: outputCurrency === '' ? null : outputCurrency ?? null,
     },
+    limitPrice: outputCurrency,
     typedValue: parseTokenAmountURLParameter(parsedQs.exactAmount),
     independentField: parseIndependentFieldURLParameter(parsedQs.exactField),
     recipient,
@@ -319,6 +339,7 @@ export function useDefaultsFromURLSearch():
         inputCurrencyId,
         outputCurrencyId,
         recipient: parsed.recipient,
+        limitPrice: parsed.limitPrice,
       })
     )
 

@@ -264,7 +264,7 @@ interface SwitchToWethBtnProps {
 
 function SwitchToWethBtn({ wrappedToken }: SwitchToWethBtnProps) {
   const replaceSwapState = useReplaceSwapState()
-  const { independentField, typedValue, OUTPUT } = useSwapState()
+  const { independentField, typedValue, OUTPUT, limitPrice } = useSwapState()
 
   return (
     <ButtonPrimary
@@ -275,6 +275,7 @@ function SwitchToWethBtn({ wrappedToken }: SwitchToWethBtnProps) {
           inputCurrencyId: wrappedToken.address,
           outputCurrencyId: OUTPUT.currencyId ?? undefined,
           typedValue,
+          limitPrice,
           recipient: null,
           field: independentField,
         })

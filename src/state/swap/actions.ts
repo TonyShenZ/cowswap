@@ -14,5 +14,9 @@ export const replaceSwapState = createAction<{
   inputCurrencyId?: string
   outputCurrencyId?: string
   recipient: string | null
+  limitPrice: string | null
 }>('swap/replaceSwapState')
+
+export const setLimitPrice = createAction<{ limitPrice: string | null }>('swap/setLimitPrice')
+
 export const setRecipient = createAction<{ recipient: string | null }>('swap/setRecipient')

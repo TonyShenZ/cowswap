@@ -13,6 +13,7 @@ export interface SwapState {
   readonly [Field.OUTPUT]: {
     readonly currencyId: string | undefined | null
   }
+  readonly limitPrice: string
   // the typed recipient address or ENS name, or null if swap should go to sender
   readonly recipient: string | null
 }
@@ -31,6 +32,7 @@ export default createReducer<SwapState>(initialState, (builder) =>
           [Field.OUTPUT]: {
             currencyId: outputCurrencyId ?? null,
           },
+          limitPrice: '0',
           independentField: field,
           typedValue,
           recipient,

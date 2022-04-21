@@ -432,6 +432,7 @@ export function queryParametersToSwapState(parsedQs: ParsedQs, defaultInputCurre
     [Field.OUTPUT]: {
       currencyId: outputCurrency === '' ? null : outputCurrency ?? null,
     },
+    limitPrice: outputCurrency,
     typedValue: parseTokenAmountURLParameter(parsedQs.exactAmount),
     independentField: parseIndependentFieldURLParameter(parsedQs.exactField),
     recipient,
@@ -461,6 +462,7 @@ export function useDefaultsFromURLSearch(): DefaultFromUrlSearch {
       inputCurrencyId,
       outputCurrencyId,
       recipient: parsed.recipient,
+      limitPrice: parsed.limitPrice,
     })
 
     setResult({ inputCurrencyId, outputCurrencyId })
@@ -480,6 +482,7 @@ export function useReplaceSwapState() {
       inputCurrencyId?: string | undefined
       outputCurrencyId?: string | undefined
       recipient: string | null
+      limitPrice: string | null
     }) => dispatch(replaceSwapState(newState)),
     [dispatch]
   )

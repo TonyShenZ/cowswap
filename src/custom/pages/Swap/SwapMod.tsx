@@ -223,6 +223,8 @@ export default function Swap({
   }
   const tradeCurrentVersion = tradesByVersion[Version.v2]
 
+  console.log('tradeCurrentVersion', tradeCurrentVersion)
+
   // nativeInput only applies to useWrapCallback and any function that is native
   // currency specific - use slippage/fee adjusted native currency for exactOUT orders
   // and direct input for exactIn orders

@@ -84,14 +84,7 @@ import AdvancedSwapDetailsDropdown from 'components/swap/AdvancedSwapDetailsDrop
 import { formatSmart } from 'utils/format'
 import { RowSlippage } from 'components/swap/TradeSummary/RowSlippage'
 import usePrevious from 'hooks/usePrevious'
-import {
-  MarkerOrderWrapper,
-  OrderBookWrapper,
-  StyledAppBody,
-  TransactionContent,
-  TradingViewWrapper,
-  OrderWrapper,
-} from './styleds'
+import { MarkerOrderWrapper, OrderBookWrapper, StyledAppBody, TransactionContent, OrderWrapper } from './styleds'
 import { ApplicationModal } from 'state/application/reducer'
 import TransactionConfirmationModal, { OperationType } from 'components/TransactionConfirmationModal'
 import AffiliateStatusCheck from 'components/AffiliateStatusCheck'
@@ -104,6 +97,7 @@ import Transactions from './Transactions'
 import Tabs, { Tab, TabList, TabPanel, TabPanels } from '@src/custom/components/Tabs'
 import Entrusts from './Entrusts'
 import TransactionHeader from './TransactionHeader'
+import TradingView from './TradingView'
 
 // MOD - exported in ./styleds to avoid circ dep
 // export const StyledInfo = styled(Info)`
@@ -552,7 +546,7 @@ export default function OrderBook({
         <TransactionContent>
           <Handicap sellToken={currencies[Field.INPUT]} buyToken={currencies[Field.OUTPUT]} />
           <MarkerOrderWrapper gap="5px">
-            {/* <TradingViewWrapper>TradingView</TradingViewWrapper> */}
+            <TradingView />
             <OrderWrapper>
               <Tabs defaultIndex={1}>
                 <TabList justify={'start'}>

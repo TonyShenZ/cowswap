@@ -181,7 +181,10 @@ export default function Limit({
   // const toggledVersion = useToggledVersion()
 
   // limit state
-  const { independentField, typedValue, recipient, INPUT, OUTPUT } = useSwapState() // MOD: adds INPUT/OUTPUT
+  const { independentField, typedValue, recipient, INPUT, OUTPUT, limitPrice } = useSwapState() // MOD: adds INPUT/OUTPUT
+
+  console.log('useSwapState', independentField, typedValue, recipient, INPUT, OUTPUT, limitPrice)
+
   const {
     v2Trade,
     // v3TradeState: { trade: v3Trade, state: v3TradeState },
@@ -280,8 +283,8 @@ export default function Limit({
   const fiatValueInput = useHigherUSDValue(parsedAmounts[Field.INPUT])
   const fiatValueOutput = useHigherUSDValue(parsedAmounts[Field.OUTPUT])
 
-  const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
-  const [limitPrice, setLimitPrice] = useState('')
+  const { onSwitchTokens, onCurrencySelection, onUserInput, onLimitPriceInput, onChangeRecipient } =
+    useSwapActionHandlers()
 
   // const isValid = !swapInputError
   const isValid = !swapInputError && feeWarningAccepted && impactWarningAccepted // mod
@@ -296,16 +299,13 @@ export default function Limit({
 
   const handleLimiteInput = useCallback(
     (value: string) => {
-      console.log(parsedAmounts)
-      setLimitPrice(value)
+      onLimitPriceInput(value)
     },
-    [setLimitPrice]
+    [onLimitPriceInput]
   )
 
   const handleTypeOutput = useCallback(
     (value: string) => {
-      console.log('handleTypeOutput', value)
-
       onUserInput(Field.OUTPUT, value)
     },
     [onUserInput]
@@ -354,6 +354,8 @@ export default function Limit({
 
     return (Number(formattedAmounts[Field.INPUT]) * Number(limitPrice ?? priceSide.toExact())).toString()
   }, [limitPrice, priceSide])
+
+  console.log('limitPrice', limitPrice)
 
   /* const userHasSpecifiedInputOutput = Boolean(
     currencies[Field.INPUT] && currencies[Field.OUTPUT] && parsedAmounts[independentField]?.greaterThan(JSBI.BigInt(0))

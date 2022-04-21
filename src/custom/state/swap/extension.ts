@@ -64,6 +64,8 @@ export function useTradeExactInWithFee({
   // no price object or feeAdjusted amount? no trade
   if (!executionPrice || !feeAdjustedAmount) return null
 
+  const limitPrice = executionPrice
+
   // calculate our output without any fee, consuming price
   // useful for calculating fees in buy token
   const outputAmountWithoutFee = executionPrice.quote(parsedInputAmount)

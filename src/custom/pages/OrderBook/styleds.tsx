@@ -3,6 +3,21 @@ import { Info } from 'react-feather'
 import AppBody from 'pages/AppBody'
 import Column, { AutoColumn } from '@src/components/Column'
 
+export interface ChartProperties {
+  locale: string
+  debug: boolean
+  fullscreen: boolean
+  symbol: string
+  interval: string
+  theme: string
+  allow_symbol_change: boolean
+  timezone: string
+  autosize: boolean
+  toolbar_bg?: string
+  disabled_features?: string[]
+  overrides?: Record<string, unknown>
+}
+
 export const StyledInfo = styled(Info)`
   opacity: 0.4;
   color: ${({ theme }) => theme.text1};
@@ -30,9 +45,7 @@ export const TransactionContent = styled.div`
   grid-gap: 5px;
   margin-top: 5px;
 `
-export const TradingViewWrapper = styled.div`
-  height: 467px;
-`
+
 export const OrderWrapper = styled.div`
   width: 100%;
   background: ${({ theme }) => theme.bg9};

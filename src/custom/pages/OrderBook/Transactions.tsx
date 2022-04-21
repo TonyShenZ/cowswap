@@ -3,10 +3,14 @@ import { Text } from 'rebass'
 import Tabs, { Tab, TabList, TabPanel, TabPanels } from '@src/custom/components/Tabs'
 import { Trans } from '@lingui/macro'
 import { hasTrades } from '@src/custom/utils/trade'
+import { retry, RetryOptions } from 'utils/retry'
 import { useActiveWeb3React } from '@src/hooks/web3'
 import { getTrades } from '@src/custom/api/gnosisProtocol'
-import { useCallback, useEffect } from 'react'
-import { useReferralAddress } from '@src/custom/state/affiliate/hooks'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useReferralAddress, useResetReferralAddress } from '@src/custom/state/affiliate/hooks'
+import useRecentActivity from '@src/custom/hooks/useRecentActivity'
+import { OrderStatus } from '@src/custom/state/orders/actions'
+import { useHistory } from 'react-router-dom'
 
 const TransactionsWrapper = styled.div`
   background: ${({ theme }) => theme.bg9};
@@ -36,48 +40,21 @@ const TableWrapper = styled.table`
     }
   }
 `
+type AffiliateStatus = 'NOT_CONNECTED' | 'OWN_LINK' | 'ACTIVE' | 'UNSUPPORTED_NETWORK'
+const DEFAULT_RETRY_OPTIONS: RetryOptions = { n: 3, minWait: 1000, maxWait: 3000 }
+
 export default function Transactions() {
   const { account, chainId } = useActiveWeb3React()
-  const referralAddress = useReferralAddress()
-  // const [error, setError] = useState('')
+  const getTradesObj = useCallback(() => {
+    if (!account || !chainId) {
+      return
+    }
+    getTrades({ owner: account, chainId }).then((res) => console.log(res))
+  }, [account, chainId])
 
-  // const handleAffiliateState = useCallback(async () => {
-  //   if (!chainId || !account || !referralAddress) {
-  //     return
-  //   }
-
-  //   if (!referralAddress.isValid) {
-  //     setError('Affiliate program: The referral address is invalid.')
-  //     return
-  //   }
-
-  //   if (fulfilledOrders.length >= 1 && isFirstTrade.current) {
-  //     setAffiliateState(null)
-  //     isFirstTrade.current = false
-  //     history.replace({ search: '' })
-  //     resetReferralAddress()
-  //     return
-  //   }
-
-  //   try {
-  //     // we first validate that the user hasn't already traded
-  //     const userHasTrades = await retry(() => hasTrades(chainId, account), DEFAULT_RETRY_OPTIONS).promise
-  //     if (userHasTrades) {
-  //       return
-  //     }
-  //   } catch (error) {
-  //     console.error(error)
-  //     setError('Affiliate program: There was an error loading trades. Please try again later.')
-  //     return
-  //   }
-
-  //   setAffiliateState('ACTIVE')
-  //   isFirstTrade.current = true
-  // }, [referralAddress, chainId, account, fulfilledOrders.length, history, resetReferralAddress])
-
-  // useEffect(() => {
-  //   handleAffiliateState()
-  // }, [])
+  useEffect(() => {
+    getTradesObj()
+  }, [])
 
   return (
     <TransactionsWrapper>
