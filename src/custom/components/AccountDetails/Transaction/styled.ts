@@ -218,7 +218,6 @@ export const StatusLabelWrapper = styled.div`
   flex-flow: column wrap;
   flex: 0 1 auto;
   justify-content: center;
-  margin: 0 0 auto auto;
 
   ${({ theme }) => theme.mediaWidth.upToSmall`
     margin: 16px auto 0;
@@ -234,7 +233,6 @@ export const StatusLabel = styled.div<{
   color: string
 }>`
   height: 28px;
-  width: 100px;
   ${({ isPending, isPresignaturePending, isCancelling, theme }) =>
     !isCancelling && (isPending || isPresignaturePending) && `border:  1px solid ${theme.card.border};`}
   color: ${({ isPending, isPresignaturePending, theme, color }) =>
@@ -257,14 +255,14 @@ export const StatusLabel = styled.div<{
 
   &::before {
     content: '';
-    background: ${({ color, isTransaction, isPending, isPresignaturePending, isCancelling, theme }) =>
+    /* background: ${({ color, isTransaction, isPending, isPresignaturePending, isCancelling, theme }) =>
       !isCancelling && isPending
         ? 'transparent'
         : isPresignaturePending || (isPending && isTransaction)
         ? theme.pending
         : color === 'success'
         ? theme.success
-        : theme.attention};
+        : theme.attention}; */
     position: absolute;
     left: 0;
     top: 0;
@@ -322,7 +320,6 @@ export const StatusLabelBelow = styled.div<{ isCancelling?: boolean }>`
   align-items: center;
   font-size: 12px;
   line-height: 1.1;
-  margin: 7px auto 0;
   color: ${({ isCancelling, theme }) => (isCancelling ? theme.primary1 : 'inherit')};
 
   > ${LinkStyledButton} {

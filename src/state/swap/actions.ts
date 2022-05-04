@@ -13,10 +13,10 @@ export const replaceSwapState = createAction<{
   typedValue: string
   inputCurrencyId?: string
   outputCurrencyId?: string
+  limitPrice?: string
   recipient: string | null
-  limitPrice: string | null
 }>('swap/replaceSwapState')
 
-export const setLimitPrice = createAction<{ limitPrice: string | null }>('swap/setLimitPrice')
+export const setLimitPrice = createAction<{ limitPrice: string }>('swap/setLimitPrice')
 
 export const setRecipient = createAction<{ recipient: string | null }>('swap/setRecipient')

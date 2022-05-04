@@ -1,7 +1,7 @@
 import styled from 'styled-components/macro'
 import { Text } from 'rebass'
 import { CurrencyAmount } from '@uniswap/sdk-core'
-import Tabs, { Tab, TabList, TabPanel, TabPanels } from '@src/custom/components/Tabs'
+import Tabs, { Tab, TabList, TabPanels as TabComponents } from '@src/custom/components/Tabs'
 import { Trans } from '@lingui/macro'
 import useRecentActivity, {
   ActivityDescriptors,
@@ -10,15 +10,18 @@ import useRecentActivity, {
 } from 'hooks/useRecentActivity'
 
 import { supportedChainId } from 'utils/supportedChainId'
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { OrderStatus } from '@src/custom/state/orders/actions'
 import { useActiveWeb3React } from '@src/hooks/web3'
 import { useWalletInfo } from '@src/custom/hooks/useWalletInfo'
 import { ActivityDerivedState, getActivityDerivedState } from '@src/custom/components/AccountDetails/Transaction'
-import { useToken } from '@src/hooks/Tokens'
-import { DEFAULT_PRECISION, V_COW_CONTRACT_ADDRESS } from '@src/custom/constants'
+import { DEFAULT_PRECISION } from '@src/custom/constants'
 import { formatSmart } from '@src/custom/utils/format'
 import { getExecutionPrice, getLimitPrice } from '@src/custom/state/orders/utils'
+import { StatusDetails } from '@src/custom/components/AccountDetails/Transaction/StatusDetails'
+import { StatusLabelBelow } from '@src/custom/components/AccountDetails/Transaction/styled'
+import { LinkStyledButton } from '@src/theme'
+import { CancellationModal } from '@src/custom/components/AccountDetails/Transaction/CancelationModal'
 
 const EntrustsWrapper = styled.div`
   margin-top: 5px;
@@ -50,6 +53,12 @@ const TableWrapper = styled.table`
   }
 `
 
+const TabPanels = styled(TabComponents)`
+  height: 300px;
+  overflow: hidden;
+  overflow-y: auto;
+`
+
 const isPending = (data: TransactionAndOrder) =>
   data.status === OrderStatus.PENDING || data.status === OrderStatus.PRESIGNATURE_PENDING
 
@@ -62,6 +71,8 @@ export default function Entrusts() {
 
   const allRecentActivity = useRecentActivity()
 
+  const [defaultIndex, setdefaultIndex] = useState(0)
+
   const { pendingActivity, confirmedActivity } = useMemo(() => {
     // Separate the array into 2: PENDING and FULFILLED(or CONFIRMED)+EXPIRED
     const pendingActivity = allRecentActivity.filter(isPending).map((data) => data.id)
@@ -73,54 +84,57 @@ export default function Entrusts() {
     }
   }, [allRecentActivity])
 
-  const activities = useMultipleActivityDescriptors({ chainId, ids: pendingActivity.concat(confirmedActivity) }) || []
+  const handleOrderSelect = useCallback(
+    (i) => {
+      setdefaultIndex(i)
+    },
+    [setdefaultIndex]
+  )
+
+  const pendActivities = useMultipleActivityDescriptors({ chainId, ids: pendingActivity }) || []
+  const historyActivity = useMultipleActivityDescriptors({ chainId, ids: confirmedActivity }) || []
+
   return (
     <EntrustsWrapper>
-      <Tabs defaultIndex={1}>
+      <Tabs defaultIndex={defaultIndex} onChange={handleOrderSelect}>
         <TabList justify={'start'}>
           <Tab>
             <Text fontSize={14} padding={'12px 0 10px'}>
-              <Trans>当前委托(0) </Trans>
+              <Trans>current mandate</Trans>
             </Text>
           </Tab>
           <Tab>
             <Text fontSize={14} padding={'12px 0 10px'}>
-              <Trans>历史委托 </Trans>
-            </Text>
-          </Tab>
-          <Tab>
-            <Text fontSize={14} padding={'12px 0 10px'}>
-              <Trans>仓位(0) </Trans>
-            </Text>
-          </Tab>
-          <Tab>
-            <Text fontSize={14} padding={'12px 0 10px'}>
-              <Trans>历史成交</Trans>
+              <Trans>historical commission</Trans>
             </Text>
           </Tab>
         </TabList>
         <TabPanels style={{ padding: '0' }}>
-          <TabPanel>
-            <TableWrapper>
-              <thead>
-                <tr>
-                  <th>
-                    <Text fontSize={12}>From</Text>
-                  </th>
-                  <th>
-                    <Text fontSize={12}>To</Text>
-                  </th>
-                  <th>
-                    <Text fontSize={12}>Price</Text>
-                  </th>
-                </tr>
-              </thead>
-              <tbody> {activities && renderActivities(activities)}</tbody>
-            </TableWrapper>
-          </TabPanel>
-          <TabPanel></TabPanel>
-          <TabPanel></TabPanel>
-          <TabPanel></TabPanel>
+          <TableWrapper>
+            <thead>
+              <tr>
+                <th>
+                  <Text fontSize={12}>From</Text>
+                </th>
+                <th>
+                  <Text fontSize={12}>To</Text>
+                </th>
+                <th>
+                  <Text fontSize={12}>Commission time</Text>
+                </th>
+                <th>
+                  <Text fontSize={12}>Commission price</Text>
+                </th>
+                <th>
+                  <Text fontSize={12}>Trading direction</Text>
+                </th>
+                <th>
+                  <Text fontSize={12}>Trading status</Text>
+                </th>
+              </tr>
+            </thead>
+            <tbody>{defaultIndex ? renderActivities(historyActivity) : renderActivities(pendActivities)}</tbody>
+          </TableWrapper>
         </TabPanels>
       </Tabs>
     </EntrustsWrapper>
@@ -128,7 +142,9 @@ export default function Entrusts() {
 }
 
 function renderActivities(activities: ActivityDescriptors[]) {
-  return activities.map((activity) => <Activity key={activity.id} activity={activity} />)
+  return activities
+    .filter((x) => x.summary?.indexOf('Approve') == -1)
+    .map((activity) => <Activity key={activity.id} activity={activity} />)
 }
 
 function Activity({ activity: activityData }: { activity: ActivityDescriptors }) {
@@ -195,18 +211,17 @@ function ActivityDetails(props: {
   disableMouseActions: boolean | undefined
   creationTime?: string | undefined
 }) {
-  const { activityDerivedState, chainId, activityLinkUrl, disableMouseActions, creationTime } = props
-  const { id, isOrder, summary, order, enhancedTransaction, isCancelled, isExpired, isUnfillable } =
-    activityDerivedState
-  const tokenAddress =
-    enhancedTransaction?.approval?.tokenAddress || (enhancedTransaction?.claim && V_COW_CONTRACT_ADDRESS[chainId])
-  const singleToken = useToken(tokenAddress) || null
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const { activityDerivedState, chainId } = props
+  const { id, isOrder, summary, order, enhancedTransaction, isCancellable } = activityDerivedState
 
   if (!order && !enhancedTransaction) return null
 
   // Order Summary default object
   let orderSummary: OrderSummaryType
   if (order) {
+    console.log('Order Summary default object')
+
     const { inputToken, sellAmount, feeAmount, outputToken, buyAmount, validTo, kind, fulfillmentTime } = order
 
     const sellAmt = CurrencyAmount.fromRawAmount(inputToken, sellAmount.toString())
@@ -264,16 +279,39 @@ function ActivityDetails(props: {
     orderSummary = DEFAULT_ORDER_SUMMARY
   }
 
-  const { kind, from, to, executionPrice, limitPrice, fulfillmentTime, validTo } = orderSummary
+  const { kind, from, to, limitPrice, validTo } = orderSummary
+
   const activityName = isOrder ? `${kind} order` : 'Transaction'
-  const inputToken = activityDerivedState?.order?.inputToken || null
-  const outputToken = activityDerivedState?.order?.outputToken || null
+
+  const onCancelClick = () => setShowCancelModal(true)
+  const onDismiss = () => setShowCancelModal(false)
 
   return (
     <tr>
-      <td align={'left'}>{from}</td>
-      <td align={'left'}>{to}</td>
-      <td align={'left'}>{limitPrice}</td>
+      <td align={'center'}>{from}</td>
+      <td align={'center'}>{to}</td>
+      <td align={'center'}>{validTo}</td>
+      <td align={'center'}>{limitPrice}</td>
+      <td align={'center'}>{activityName}</td>
+      <td align={'center'}>
+        {isCancellable ? (
+          <StatusLabelBelow>
+            {/* Cancel order */}
+            <LinkStyledButton onClick={onCancelClick}>Cancel order</LinkStyledButton>
+            {showCancelModal && (
+              <CancellationModal
+                chainId={chainId}
+                orderId={id}
+                summary={summary}
+                isOpen={showCancelModal}
+                onDismiss={onDismiss}
+              />
+            )}
+          </StatusLabelBelow>
+        ) : (
+          <StatusDetails chainId={chainId} activityDerivedState={activityDerivedState} />
+        )}
+      </td>
     </tr>
   )
 }

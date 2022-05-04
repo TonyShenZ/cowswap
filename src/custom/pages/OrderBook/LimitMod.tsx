@@ -32,7 +32,6 @@ import confirmPriceImpactWithoutFee from 'components/swap/confirmPriceImpactWith
 import ConfirmLimitModal from '@src/custom/components/swap/ConfirmLimitModal'
 
 import { /* ArrowWrapper, Dots, */ /* SwapCallbackError, */ Wrapper } from 'components/swap/styleds'
-import SwapHeader from 'components/swap/SwapHeader'
 // import TradePrice from 'components/swap/TradePrice'
 // import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import TokenWarningModal from 'components/TokenWarningModal'
@@ -75,12 +74,11 @@ import { maxAmountSpend } from 'utils/maxAmountSpend'
 // MOD
 import { AMOUNT_PRECISION, INITIAL_ALLOWED_SLIPPAGE_PERCENT } from 'constants/index'
 import { computeSlippageAdjustedAmounts } from 'utils/prices'
-// import FeeInformationTooltip from 'components/swap/FeeInformationTooltip'
 import { useWalletInfo } from 'hooks/useWalletInfo'
 import { HashLink } from 'react-router-hash-link'
 // import { logTradeDetails } from 'state/swap/utils'
 import { useGetQuoteAndStatus } from 'state/price/hooks'
-import { LimitProps, ButtonError, ButtonPrimary } from '.' // mod
+import { OrderBookProps, ButtonError, ButtonPrimary } from '.' // mod
 import TradeGp from 'state/swap/TradeGp'
 import AdvancedSwapDetailsDropdown from 'components/swap/AdvancedSwapDetailsDropdown'
 import { formatSmart } from 'utils/format'
@@ -120,8 +118,7 @@ export default function Limit({
   HighFeeWarning,
   NoImpactWarning,
   className,
-}: // allowsOffchainSigning,
-LimitProps) {
+}: OrderBookProps) {
   const { account, chainId } = useActiveWeb3React()
   const { isSupportedWallet } = useWalletInfo()
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -540,7 +537,6 @@ LimitProps) {
       <NetworkAlert />
       <AffiliateStatusCheck />
       <StyledAppBody className={className}>
-        <SwapHeader allowedSlippage={allowedSlippage} active={'limit'} />
         <Wrapper id="limit-page" className={isExpertMode || recipientToggleVisible ? 'expertMode' : ''}>
           <ConfirmLimitModal
             isOpen={showConfirm}
@@ -603,11 +599,11 @@ LimitProps) {
               </ArrowWrapper>
               */}
               {/* GP ARROW SWITCHER */}
-              <AutoRow padding={'20px 0'} margin={'0px'} gap="20px">
+              <AutoRow padding={'6px 0'} margin={'0px'} gap="20px">
                 <Input
                   type={'number'}
                   className="limit-price-input"
-                  placeholder={trade?.executionPrice.toFixed() ?? 'price'}
+                  placeholder={trade?.executionPrice.toFixed() ?? 'Price'}
                   value={limitPrice}
                   onChange={(e) => handleLimiteInput(e.target.value)}
                 />

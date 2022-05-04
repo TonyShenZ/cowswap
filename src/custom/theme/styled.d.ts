@@ -38,6 +38,10 @@ export interface Colors extends ColorsUniswap {
   cardBorder: Color
   cardShadow1: Color
   cardShadow2: Color
+
+  /** */
+  primary6: Color
+  primary7: Color
 }
 
 declare module 'styled-components' {

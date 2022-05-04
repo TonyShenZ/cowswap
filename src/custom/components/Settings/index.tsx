@@ -122,7 +122,7 @@ export interface SettingsTabProp extends WithClassName {
 function SettingsButton({ toggleSettings, expertMode }: SettingsButtonProps) {
   return (
     <StyledMenuButton onClick={toggleSettings} id="open-settings-dialog-button">
-      <b>Settings</b>
+      {/* <b>Settings</b> */}
       <StyledMenuIcon />
       {expertMode ? (
         <EmojiWrapper>

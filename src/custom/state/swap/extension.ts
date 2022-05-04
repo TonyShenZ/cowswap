@@ -1,4 +1,4 @@
-import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount, Price, TradeType } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { QuoteInformationObject } from 'state/price/reducer'
 import TradeGp, { _constructTradePrice } from './TradeGp'
@@ -9,6 +9,7 @@ interface TradeParams {
   inputCurrency?: Currency | null
   outputCurrency?: Currency | null
   quote?: QuoteInformationObject
+  limitPrice?: string
   isWrapping: boolean
 }
 
@@ -29,6 +30,7 @@ export function useTradeExactInWithFee({
   parsedAmount: parsedInputAmount,
   outputCurrency,
   quote,
+  limitPrice,
   isWrapping,
 }: Omit<TradeParams, 'inputCurrency'>) {
   // make sure we have a typed in amount, a fee, and a price
@@ -60,15 +62,18 @@ export function useTradeExactInWithFee({
     kind: OrderKind.SELL,
     price: quote?.price,
   })
-
   // no price object or feeAdjusted amount? no trade
   if (!executionPrice || !feeAdjustedAmount) return null
 
-  const limitPrice = executionPrice
+  // eslint-disable-next-line
+  let executionPrices: Price<Currency, Currency> = executionPrice
 
   // calculate our output without any fee, consuming price
   // useful for calculating fees in buy token
-  const outputAmountWithoutFee = executionPrice.quote(parsedInputAmount)
+
+  const outputAmountWithoutFee = executionPrices
+    .quote(parsedInputAmount)
+    .divide(limitPrice ? executionPrice.divide(limitPrice) : '1')
 
   return new TradeGp({
     inputAmount: parsedInputAmount,
@@ -77,7 +82,7 @@ export function useTradeExactInWithFee({
     outputAmount,
     outputAmountWithoutFee,
     fee,
-    executionPrice,
+    executionPrice: executionPrices,
     tradeType: TradeType.EXACT_INPUT,
   })
 }

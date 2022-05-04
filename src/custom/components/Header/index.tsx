@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { SupportedChainId as ChainId } from 'constants/chains'
 // import { ExternalLink } from 'theme'
 // import { useHistory, useLocation } from 'react-router-dom'
-import { useLocation } from 'react-router-dom'
+// import { useLocation } from 'react-router-dom'
 
 import HeaderMod, {
   Title as TitleMod,
@@ -13,19 +13,19 @@ import HeaderMod, {
   HeaderElement,
   AccountElement,
   HeaderElementWrap,
-  StyledNavLink as StyledNavLinkUni,
+  // StyledNavLink as StyledNavLinkUni,
   StyledMenuButton,
   HeaderFrame,
   // UNIWrapper,
 } from './HeaderMod'
-import Menu from 'components/Menu'
+// import Menu from 'components/Menu'
 import { Moon, Sun } from 'react-feather'
 import styled from 'styled-components/macro'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useETHBalances } from 'state/wallet/hooks'
 import { AMOUNT_PRECISION } from 'constants/index'
 import { useDarkModeManager } from 'state/user/hooks'
-import { darken } from 'polished'
+// import { darken } from 'polished'
 // import TwitterImage from 'assets/cow-swap/twitter.svg'
 import OrdersPanel from 'components/OrdersPanel'
 import { ApplicationModal } from 'state/application/reducer'
@@ -47,7 +47,7 @@ import Modal from 'components/Modal'
 import UniBalanceContent from 'components/Header/UniBalanceContent'
 // import CowClaimButton from 'components/CowClaimButton'
 // import { IS_CLAIMING_ENABLED } from 'pages/Claim/const'
-import CowClaimButton from 'components/CowClaimButton'
+// import CowClaimButton from 'components/CowClaimButton'
 
 export const NETWORK_LABELS: { [chainId in ChainId]?: string } = {
   // [ChainId.RINKEBY]: 'Rinkeby',
@@ -69,19 +69,19 @@ export interface LinkType {
   path: string
 }
 
-const StyledNavLink = styled(StyledNavLinkUni)`
-  transition: color 0.15s ease-in-out;
-  color: ${({ theme }) => darken(0.3, theme.text1)};
+// const StyledNavLink = styled(StyledNavLinkUni)`
+//   transition: color 0.15s ease-in-out;
+//   color: ${({ theme }) => darken(0.3, theme.text1)};
 
-  &:first-of-type {
-    margin: 0 12px 0 0;
-  }
+//   &:first-of-type {
+//     margin: 0 12px 0 0;
+//   }
 
-  &:hover,
-  &:focus {
-    color: ${({ theme }) => theme.text1};
-  }
-`
+//   &:hover,
+//   &:focus {
+//     color: ${({ theme }) => theme.text1};
+//   }
+// `
 
 const BalanceText = styled(BalanceTextUni)`
   ${({ theme }) => theme.mediaWidth.upToMedium`
@@ -226,8 +226,8 @@ export const UniIcon = styled.div`
 // `
 
 export default function Header() {
-  const location = useLocation()
-  const isClaimPage = location.pathname === '/claim'
+  // const location = useLocation()
+  // const isClaimPage = location.pathname === '/claim'
 
   const { account, chainId: connectedChainId } = useActiveWeb3React()
   const chainId = supportedChainId(connectedChainId)
@@ -270,9 +270,9 @@ export default function Header() {
             </UniIcon>
           </Title>
           <HeaderLinks>
-            <StyledNavLink to="/swap">Swap</StyledNavLink>
+            {/* <StyledNavLink to="/swap">Swap</StyledNavLink> */}
             {/* <StyledNavLink to="/profile">Profile</StyledNavLink> */}
-            <StyledNavLink to="/orderBook">OrderBook</StyledNavLink>
+            {/* <StyledNavLink to="/orderBook">OrderBook</StyledNavLink> */}
           </HeaderLinks>
         </HeaderRow>
 

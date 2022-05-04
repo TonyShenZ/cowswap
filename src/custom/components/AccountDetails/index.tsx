@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+// import React, { Fragment } from 'react'
 
 import { useActiveWeb3React } from 'hooks/web3'
 import { getExplorerLabel, shortenAddress } from 'utils'
@@ -22,15 +22,15 @@ import {
   AccountControl,
   AddressLink,
   IconWrapper,
-  renderActivities,
+  // renderActivities,
 } from './AccountDetailsMod'
 import {
   NetworkCard,
   Wrapper,
   InfoCard,
   AccountGroupingRow,
-  NoActivityMessage,
-  LowerSection,
+  // NoActivityMessage,
+  // LowerSection,
   WalletActions,
   WalletSecondaryActions,
   WalletNameAddress,
@@ -39,15 +39,16 @@ import {
 import { ConnectedWalletInfo, useWalletInfo } from 'hooks/useWalletInfo'
 import { MouseoverTooltip } from 'components/Tooltip'
 import { supportedChainId } from 'utils/supportedChainId'
-import { groupActivitiesByDay, useMultipleActivityDescriptors } from 'hooks/useRecentActivity'
-import { CreationDateText } from 'components/AccountDetails/Transaction/styled'
-import { ExternalLink } from 'theme'
-import { getExplorerAddressLink } from 'utils/explorer'
+// import { useMultipleActivityDescriptors } from 'hooks/useRecentActivity'
+// import { groupActivitiesByDay, useMultipleActivityDescriptors } from 'hooks/useRecentActivity'
+// import { CreationDateText } from 'components/AccountDetails/Transaction/styled'
+// import { ExternalLink } from 'theme'
+// import { getExplorerAddressLink } from 'utils/explorer'
 import { gnosisSafe } from 'connectors'
 
-const DATE_FORMAT_OPTION: Intl.DateTimeFormatOptions = {
-  dateStyle: 'long',
-}
+// const DATE_FORMAT_OPTION: Intl.DateTimeFormatOptions = {
+//   dateStyle: 'long',
+// }
 
 type AbstractConnector = Pick<ReturnType<typeof useActiveWeb3React>, 'connector'>['connector']
 
@@ -142,8 +143,8 @@ interface AccountDetailsProps {
 }
 
 export default function AccountDetails({
-  pendingTransactions = [],
-  confirmedTransactions = [],
+  // pendingTransactions = [],
+  // confirmedTransactions = [],
   ENSName,
   toggleWalletModal,
   closeOrdersPanel,
@@ -152,14 +153,15 @@ export default function AccountDetails({
   const chainId = supportedChainId(connectedChainId)
   const walletInfo = useWalletInfo()
 
-  const explorerOrdersLink = account && connectedChainId && getExplorerAddressLink(connectedChainId, account)
+  // const explorerOrdersLink = account && connectedChainId && getExplorerAddressLink(connectedChainId, account)
   const explorerLabel = chainId && account ? getExplorerLabel(chainId, account, 'address') : undefined
 
-  const activities =
-    useMultipleActivityDescriptors({ chainId, ids: pendingTransactions.concat(confirmedTransactions) }) || []
-  const activitiesGroupedByDate = groupActivitiesByDay(activities)
+  // const activities =
+  //   useMultipleActivityDescriptors({ chainId, ids: pendingTransactions.concat(confirmedTransactions) }) || []
 
-  const activityTotalCount = activities?.length || 0
+  // const activitiesGroupedByDate = groupActivitiesByDay(activities)
+
+  // const activityTotalCount = activities?.length || 0
 
   const handleDisconnectClick = () => {
     ;(connector as any).close()
@@ -219,7 +221,7 @@ export default function AccountDetails({
         </AccountGroupingRow>
       </InfoCard>
 
-      {!!pendingTransactions.length || !!confirmedTransactions.length ? (
+      {/* {!!pendingTransactions.length || !!confirmedTransactions.length ? (
         <LowerSection>
           <span>
             {' '}
@@ -232,7 +234,6 @@ export default function AccountDetails({
           <div>
             {activitiesGroupedByDate.map(({ date, activities }) => (
               <Fragment key={date.getTime()}>
-                {/* TODO: style me! */}
                 <CreationDateText>{date.toLocaleString(undefined, DATE_FORMAT_OPTION)}</CreationDateText>
                 {renderActivities(activities)}
               </Fragment>
@@ -244,7 +245,7 @@ export default function AccountDetails({
         <LowerSection>
           <NoActivityMessage>Your activity will appear here...</NoActivityMessage>
         </LowerSection>
-      )}
+      )} */}
     </Wrapper>
   )
 }

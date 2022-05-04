@@ -253,6 +253,8 @@ export function useDerivedSwapInfo(): /* {
   bestTrade: V2Trade<Currency, Currency, TradeType> | V3Trade<Currency, Currency, TradeType> | undefined
   allowedSlippage: Percent
 } */ DerivedSwapInfo {
+  console.log('useDerivedSwapInfoxxxx')
+
   const { account, chainId } = useActiveWeb3React()
 
   // const [singleHopOnly] = useUserSingleHopOnly()
@@ -260,6 +262,7 @@ export function useDerivedSwapInfo(): /* {
   const {
     independentField,
     typedValue,
+    limitPrice,
     [Field.INPUT]: { currencyId: inputCurrencyId },
     [Field.OUTPUT]: { currencyId: outputCurrencyId },
     recipient,
@@ -307,8 +310,10 @@ export function useDerivedSwapInfo(): /* {
     parsedAmount: isExactIn ? parsedAmount : undefined,
     outputCurrency,
     quote,
+    limitPrice,
     isWrapping,
   })
+
   const bestTradeExactOut = useTradeExactOutWithFee({
     parsedAmount: isExactIn ? undefined : parsedAmount,
     inputCurrency,
@@ -481,8 +486,8 @@ export function useReplaceSwapState() {
       typedValue: string
       inputCurrencyId?: string | undefined
       outputCurrencyId?: string | undefined
+      limitPrice?: string | undefined
       recipient: string | null
-      limitPrice: string | null
     }) => dispatch(replaceSwapState(newState)),
     [dispatch]
   )

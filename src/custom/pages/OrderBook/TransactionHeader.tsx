@@ -2,6 +2,8 @@ import Column from '@src/components/Column'
 import styled from 'styled-components/macro'
 import { Text } from 'rebass'
 import Row from '@src/components/Row'
+import { useSwapState } from '@src/state/swap/hooks'
+import { useCurrency } from '@src/hooks/Tokens'
 
 const TransactionHeaderWrapper = styled(Row)`
   display: grid;
@@ -19,9 +21,16 @@ const TransactionHeaderDownUp = styled.div`
 `
 
 export default function TransactionHeader() {
+  const { INPUT, OUTPUT } = useSwapState()
+
+  const inputCurrency = useCurrency(INPUT?.currencyId)
+  const outputCurrency = useCurrency(OUTPUT?.currencyId)
+
   return (
     <TransactionHeaderWrapper>
-      <div>BNB/USDT</div>
+      <div>
+        {inputCurrency ? inputCurrency.symbol : '-'}/{outputCurrency ? outputCurrency.symbol : '-'}
+      </div>
       <TransactionHeaderDownUp>
         <Column>
           <Text fontSize={16} lineHeight={'19px'}>

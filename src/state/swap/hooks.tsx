@@ -42,8 +42,8 @@ export function useSwapActionHandlers(): {
   onCurrencySelection: (field: Field, currency: Currency) => void
   onSwitchTokens: () => void
   onUserInput: (field: Field, typedValue: string) => void
-  onChangeRecipient: (recipient: string | null) => void
   onLimitPriceInput: (limitPrice: string) => void
+  onChangeRecipient: (recipient: string | null) => void
 } {
   const dispatch = useAppDispatch()
   const onCurrencySelection = useCallback(
@@ -64,8 +64,6 @@ export function useSwapActionHandlers(): {
 
   const onUserInput = useCallback(
     (field: Field, typedValue: string) => {
-      console.log(typedValue)
-
       dispatch(typeInput({ field, typedValue }))
     },
     [dispatch]
@@ -88,8 +86,8 @@ export function useSwapActionHandlers(): {
   return {
     onSwitchTokens,
     onCurrencySelection,
-    onUserInput,
     onLimitPriceInput,
+    onUserInput,
     onChangeRecipient,
   }
 }
@@ -161,6 +159,8 @@ export function useDerivedSwapInfo(toggledVersion: Version | undefined): {
     [Field.OUTPUT]: { currencyId: outputCurrencyId },
     recipient,
   } = useSwapState()
+
+  console.log('useDerivedSwapInfo')
 
   const inputCurrency = useCurrency(inputCurrencyId)
   const outputCurrency = useCurrency(outputCurrencyId)

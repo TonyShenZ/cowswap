@@ -29,10 +29,8 @@ import Loader from 'components/Loader'
 import { /* Row, */ AutoRow /*, RowFixed */ } from 'components/Row'
 // import BetterTradeLink from 'components/swap/BetterTradeLink'
 import confirmPriceImpactWithoutFee from 'components/swap/confirmPriceImpactWithoutFee'
-import ConfirmLimitModal from '@src/custom/components/swap/ConfirmLimitModal'
-
+import ConfirmSwapModal from 'components/swap/ConfirmSwapModal'
 import { /* ArrowWrapper, Dots, */ /* SwapCallbackError, */ Wrapper } from 'components/swap/styleds'
-import SwapHeader from 'components/swap/SwapHeader'
 // import TradePrice from 'components/swap/TradePrice'
 // import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import TokenWarningModal from 'components/TokenWarningModal'
@@ -45,7 +43,6 @@ import { useIsSwapUnsupported } from 'hooks/useIsSwapUnsupported'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import { /* useToggledVersion, */ Version } from 'hooks/useToggledVersion'
 import { useHigherUSDValue /* , useUSDCValue */ } from 'hooks/useUSDCPrice'
-
 import useWrapCallback, { WrapType } from 'hooks/useWrapCallback'
 import { useActiveWeb3React } from 'hooks/web3'
 import {
@@ -75,26 +72,25 @@ import { maxAmountSpend } from 'utils/maxAmountSpend'
 // MOD
 import { AMOUNT_PRECISION, INITIAL_ALLOWED_SLIPPAGE_PERCENT } from 'constants/index'
 import { computeSlippageAdjustedAmounts } from 'utils/prices'
-// import FeeInformationTooltip from 'components/swap/FeeInformationTooltip'
+import FeeInformationTooltip from 'components/swap/FeeInformationTooltip'
 import { useWalletInfo } from 'hooks/useWalletInfo'
 import { HashLink } from 'react-router-hash-link'
 // import { logTradeDetails } from 'state/swap/utils'
 import { useGetQuoteAndStatus } from 'state/price/hooks'
-import { LimitProps, ButtonError, ButtonPrimary } from '.' // mod
+import { OrderBookProps, ButtonError, ButtonPrimary } from '.' // mod
 import TradeGp from 'state/swap/TradeGp'
 import AdvancedSwapDetailsDropdown from 'components/swap/AdvancedSwapDetailsDropdown'
 import { formatSmart } from 'utils/format'
 import { RowSlippage } from 'components/swap/TradeSummary/RowSlippage'
 import usePrevious from 'hooks/usePrevious'
-import { Input, StyledAppBody } from './styleds'
+import { StyledAppBody } from './styleds'
 import { ApplicationModal } from 'state/application/reducer'
-import { OperationType } from 'components/TransactionConfirmationModal'
+import TransactionConfirmationModal, { OperationType } from 'components/TransactionConfirmationModal'
 import AffiliateStatusCheck from 'components/AffiliateStatusCheck'
 import usePriceImpact from 'hooks/usePriceImpact'
 import { useErrorMessage } from 'hooks/useErrorMessageAndModal'
 import { GpEther } from 'constants/tokens'
 import { SupportedChainId } from 'constants/chains'
-import TransactionConfirmationLimitModal from '@src/custom/components/TransactionConfirmationModal/TransactionConfirmationLimitModalMod'
 
 // MOD - exported in ./styleds to avoid circ dep
 // export const StyledInfo = styled(Info)`
@@ -107,7 +103,7 @@ import TransactionConfirmationLimitModal from '@src/custom/components/Transactio
 //   }
 // `
 
-export default function Limit({
+export default function Swap({
   history,
   TradeBasicDetails,
   EthWethWrapMessage,
@@ -120,8 +116,8 @@ export default function Limit({
   HighFeeWarning,
   NoImpactWarning,
   className,
-}: // allowsOffchainSigning,
-LimitProps) {
+  allowsOffchainSigning,
+}: OrderBookProps) {
   const { account, chainId } = useActiveWeb3React()
   const { isSupportedWallet } = useWalletInfo()
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -181,8 +177,7 @@ LimitProps) {
   // const toggledVersion = useToggledVersion()
 
   // limit state
-  const { independentField, typedValue, recipient, limitPrice, INPUT, OUTPUT } = useSwapState() // MOD: adds INPUT/OUTPUT
-
+  const { independentField, typedValue, recipient, INPUT, OUTPUT } = useSwapState() // MOD: adds INPUT/OUTPUT
   const {
     v2Trade,
     // v3TradeState: { trade: v3Trade, state: v3TradeState },
@@ -247,6 +242,7 @@ LimitProps) {
   const showWrap: boolean = !isNativeInSwap && wrapType !== WrapType.NOT_APPLICABLE
   const { address: recipientAddress } = useENSAddress(recipient)
   const trade = showWrap ? undefined : tradeCurrentVersion
+
   // const defaultTrade = showWrap ? undefined : tradesByVersion[DEFAULT_VERSION]
 
   // const betterTradeLinkV2: Version | undefined =
@@ -281,9 +277,7 @@ LimitProps) {
   const fiatValueInput = useHigherUSDValue(parsedAmounts[Field.INPUT])
   const fiatValueOutput = useHigherUSDValue(parsedAmounts[Field.OUTPUT])
 
-  const { onSwitchTokens, onCurrencySelection, onUserInput, onLimitPriceInput, onChangeRecipient } =
-    useSwapActionHandlers()
-
+  const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
   // const isValid = !swapInputError
   const isValid = !swapInputError && feeWarningAccepted && impactWarningAccepted // mod
   const dependentField: Field = independentField === Field.INPUT ? Field.OUTPUT : Field.INPUT
@@ -294,14 +288,6 @@ LimitProps) {
     },
     [onUserInput]
   )
-
-  const handleLimiteInput = useCallback(
-    (value: string) => {
-      onLimitPriceInput(value)
-    },
-    [onLimitPriceInput]
-  )
-
   const handleTypeOutput = useCallback(
     (value: string) => {
       onUserInput(Field.OUTPUT, value)
@@ -425,13 +411,13 @@ LimitProps) {
       .then((hash) => {
         setSwapState({ attemptingTxn: false, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: hash })
         ReactGA.event({
-          category: 'Limit',
+          category: 'Swap',
           action:
             recipient === null
-              ? 'Limit w/o Send'
+              ? 'Swap w/o Send'
               : (recipientAddress ?? recipient) === account
-              ? 'Limit w/o Send + recipient'
-              : 'Limit w/ Send',
+              ? 'Swap w/o Send + recipient'
+              : 'Swap w/ Send',
           label: [
             trade?.inputAmount?.currency?.symbol,
             trade?.outputAmount?.currency?.symbol,
@@ -509,15 +495,23 @@ LimitProps) {
 
   // const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
-  // const [exactInLabel, exactOutLabel] = useMemo(
-  //   () => [
-  //     independentField === Field.OUTPUT && !showWrap && trade ? <Trans>From (incl. fee)</Trans> : null,
-  //     independentField === Field.INPUT && !showWrap && trade ? <Trans>Receive (incl. fee)</Trans> : null,
-  //   ],
-  //   [independentField, showWrap, trade]
-  // )
+  const [exactInLabel, exactOutLabel] = useMemo(
+    () => [
+      independentField === Field.OUTPUT && !showWrap && trade ? <Trans>From (incl. fee)</Trans> : null,
+      independentField === Field.INPUT && !showWrap && trade ? <Trans>Receive (incl. fee)</Trans> : null,
+    ],
+    [independentField, showWrap, trade]
+  )
 
   const swapBlankState = !swapInputError && !trade
+  let amountBeforeFees: string | undefined
+  if (trade) {
+    if (trade.tradeType === TradeType.EXACT_INPUT && trade.inputAmountWithFee.lessThan(trade.fee.amount)) {
+      amountBeforeFees = '0'
+    } else {
+      amountBeforeFees = formatSmart(trade.inputAmountWithoutFee, AMOUNT_PRECISION)
+    }
+  }
 
   const { ErrorMessage } = useErrorMessage()
 
@@ -529,7 +523,7 @@ LimitProps) {
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
       />
-      <TransactionConfirmationLimitModal
+      <TransactionConfirmationModal
         attemptingTxn={true}
         isOpen={showTransactionConfirmationModal}
         pendingText={transactionConfirmationModalMsg}
@@ -539,45 +533,45 @@ LimitProps) {
 
       <NetworkAlert />
       <AffiliateStatusCheck />
-      <StyledAppBody className={className}>
-        <SwapHeader allowedSlippage={allowedSlippage} active={'limit'} />
-        <Wrapper id="limit-page" className={isExpertMode || recipientToggleVisible ? 'expertMode' : ''}>
-          <ConfirmLimitModal
-            isOpen={showConfirm}
-            trade={trade}
-            originalTrade={tradeToConfirm}
-            onAcceptChanges={handleAcceptChanges}
-            attemptingTxn={attemptingTxn}
-            txHash={txHash}
-            recipient={recipient}
-            allowedSlippage={allowedSlippage}
-            priceImpact={priceImpact}
-            onConfirm={handleSwap}
-            swapErrorMessage={swapErrorMessage}
-            onDismiss={handleConfirmDismiss}
-          />
 
+      <ConfirmSwapModal
+        isOpen={showConfirm}
+        trade={trade}
+        originalTrade={tradeToConfirm}
+        onAcceptChanges={handleAcceptChanges}
+        attemptingTxn={attemptingTxn}
+        txHash={txHash}
+        recipient={recipient}
+        allowedSlippage={allowedSlippage}
+        priceImpact={priceImpact}
+        onConfirm={handleSwap}
+        swapErrorMessage={swapErrorMessage}
+        onDismiss={handleConfirmDismiss}
+      />
+      <StyledAppBody className={className}>
+        {/* <RowBetween> */}
+        <Wrapper id="buy_swap" className={isExpertMode || recipientToggleVisible ? 'expertMode' : ''}>
           <AutoColumn gap={'md'}>
             <div style={{ display: 'relative' }}>
               <CurrencyInputPanel
                 // label={
                 //   independentField === Field.OUTPUT && !showWrap ? <Trans>From (at most)</Trans> : <Trans>From</Trans>
                 // }
-                // label={
-                //   exactInLabel && (
-                //     <FeeInformationTooltip
-                //       label={exactInLabel}
-                //       trade={trade}
-                //       showHelper={independentField === Field.OUTPUT}
-                //       amountBeforeFees={amountBeforeFees}
-                //       amountAfterFees={formatSmart(trade?.inputAmountWithFee, AMOUNT_PRECISION)}
-                //       type="From"
-                //       feeAmount={trade?.fee?.feeAsCurrency}
-                //       allowsOffchainSigning={allowsOffchainSigning}
-                //       fiatValue={fiatValueInput}
-                //     />
-                //   )
-                // }
+                label={
+                  exactInLabel && (
+                    <FeeInformationTooltip
+                      label={exactInLabel}
+                      trade={trade}
+                      showHelper={independentField === Field.OUTPUT}
+                      amountBeforeFees={amountBeforeFees}
+                      amountAfterFees={formatSmart(trade?.inputAmountWithFee, AMOUNT_PRECISION)}
+                      type="From"
+                      feeAmount={trade?.fee?.feeAsCurrency}
+                      allowsOffchainSigning={allowsOffchainSigning}
+                      fiatValue={fiatValueInput}
+                    />
+                  )
+                }
                 value={formattedAmounts[Field.INPUT]}
                 showMaxButton={showMaxButton}
                 currency={currencies[Field.INPUT]}
@@ -587,8 +581,9 @@ LimitProps) {
                 onCurrencySelect={handleInputSelect}
                 otherCurrency={currencies[Field.OUTPUT]}
                 showCommonBases
-                id="limit-currency-input"
+                id="market-currency-input"
               />
+
               {/* UNI ARROW SWITCHER */}
               {/*
               <ArrowWrapper clickable>
@@ -603,51 +598,41 @@ LimitProps) {
               </ArrowWrapper>
               */}
               {/* GP ARROW SWITCHER */}
-              <AutoRow padding={'20px 0'} margin={'0px'} gap="20px">
-                <Input
-                  type={'number'}
-                  className="limit-price-input"
-                  placeholder={trade?.executionPrice.toFixed() ?? 'price'}
-                  value={limitPrice}
-                  onChange={(e) => handleLimiteInput(e.target.value)}
-                />
-                <AutoColumn
-                  justify="space-between"
-                  style={{ margin: `${isExpertMode || recipientToggleVisible ? 10 : 3}px 0` }}
+              <AutoColumn
+                justify="space-between"
+                style={{ margin: `${isExpertMode || recipientToggleVisible ? 10 : 3}px 0` }}
+              >
+                <AutoRow
+                  justify={isExpertMode || recipientToggleVisible ? 'space-between' : 'center'}
+                  // style={{ padding: '0 1rem' }}
                 >
-                  <AutoRow
-                    justify={isExpertMode || recipientToggleVisible ? 'space-between' : 'center'}
-                    // style={{ padding: '0 1rem' }}
-                  >
-                    <ArrowWrapperLoader onSwitchTokens={onSwitchTokens} setApprovalSubmitted={setApprovalSubmitted} />
-                    {recipient === null && !showWrap && (isExpertMode || recipientToggleVisible) ? (
-                      <LinkStyledButton id="add-recipient-button" onClick={() => onChangeRecipient('')}>
-                        <Trans>+ Add a send (optional)</Trans>
-                      </LinkStyledButton>
-                    ) : null}
-                  </AutoRow>
-                </AutoColumn>
-              </AutoRow>
-
+                  <ArrowWrapperLoader onSwitchTokens={onSwitchTokens} setApprovalSubmitted={setApprovalSubmitted} />
+                  {recipient === null && !showWrap && (isExpertMode || recipientToggleVisible) ? (
+                    <LinkStyledButton id="add-recipient-button" onClick={() => onChangeRecipient('')}>
+                      <Trans>+ Add a send (optional)</Trans>
+                    </LinkStyledButton>
+                  ) : null}
+                </AutoRow>
+              </AutoColumn>
               <CurrencyInputPanel
                 value={formattedAmounts[Field.OUTPUT]}
                 onUserInput={handleTypeOutput}
                 // label={independentField === Field.INPUT && !showWrap ? <Trans>To (at least)</Trans> : <Trans>To</Trans>}
-                // label={
-                //   exactOutLabel && (
-                //     <FeeInformationTooltip
-                //       label={exactOutLabel}
-                //       trade={trade}
-                //       showHelper={independentField === Field.INPUT}
-                //       amountBeforeFees={formatSmart(trade?.outputAmountWithoutFee, AMOUNT_PRECISION)}
-                //       amountAfterFees={formatSmart(trade?.outputAmount, AMOUNT_PRECISION)}
-                //       type="To"
-                //       feeAmount={trade?.outputAmountWithoutFee?.subtract(trade?.outputAmount)}
-                //       allowsOffchainSigning={allowsOffchainSigning}
-                //       fiatValue={fiatValueOutput}
-                //     />
-                //   )
-                // }
+                label={
+                  exactOutLabel && (
+                    <FeeInformationTooltip
+                      label={exactOutLabel}
+                      trade={trade}
+                      showHelper={independentField === Field.INPUT}
+                      amountBeforeFees={formatSmart(trade?.outputAmountWithoutFee, AMOUNT_PRECISION)}
+                      amountAfterFees={formatSmart(trade?.outputAmount, AMOUNT_PRECISION)}
+                      type="To"
+                      feeAmount={trade?.outputAmountWithoutFee?.subtract(trade?.outputAmount)}
+                      allowsOffchainSigning={allowsOffchainSigning}
+                      fiatValue={fiatValueOutput}
+                    />
+                  )
+                }
                 showMaxButton={false}
                 hideBalance={false}
                 fiatValue={fiatValueOutput ?? undefined}
@@ -657,7 +642,7 @@ LimitProps) {
                 onCurrencySelect={handleOutputSelect}
                 otherCurrency={currencies[Field.INPUT]}
                 showCommonBases
-                id="limit-currency-output"
+                id="market-currency-output"
               />
             </div>
 
@@ -674,76 +659,6 @@ LimitProps) {
             ) : null}
 
             {showWrap ? null : (
-              /*
-              <Row style={{ justifyContent: !trade ? 'center' : 'space-between' }}>
-                <RowFixed>
-                  {[V3TradeState.VALID, V3TradeState.SYNCING, V3TradeState.NO_ROUTE_FOUND].includes(v3TradeState) &&
-                    (toggledVersion === Version.v3 && isTradeBetter(v3Trade, v2Trade) ? (
-                      <BetterTradeLink version={Version.v2} otherTradeNonexistent={!v3Trade} />
-                    ) : toggledVersion === Version.v2 && isTradeBetter(v2Trade, v3Trade) ? (
-                      <BetterTradeLink version={Version.v3} otherTradeNonexistent={!v2Trade} />
-                    ) : (
-                      toggledVersion === Version.v2 && (
-                        <ButtonGray
-                          width="fit-content"
-                          padding="0.1rem 0.5rem 0.1rem 0.35rem"
-                          as={Link}
-                          to="/limit"
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            height: '24px',
-                            lineHeight: '120%',
-                            marginLeft: '0.75rem',
-                          }}
-                        >
-                          <ArrowLeft color={theme.text3} size={12} /> &nbsp;
-                          <TYPE.main style={{ lineHeight: '120%' }} fontSize={12}>
-                            <Trans>
-                              <HideSmall>Back to </HideSmall>
-                              V3
-                            </Trans>
-                          </TYPE.main>
-                        </ButtonGray>
-                      )
-                    ))}
-
-                  {toggledVersion === Version.v3 && trade && isTradeBetter(v2Trade, v3Trade) && (
-                    <ButtonGray
-                      width="fit-content"
-                      padding="0.1rem 0.5rem"
-                      disabled
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        height: '24px',
-                        opacity: 0.8,
-                        marginLeft: '0.25rem',
-                      }}
-                    >
-                      <TYPE.black fontSize={12}>
-                        <Trans>V3</Trans>
-                      </TYPE.black>
-                    </ButtonGray>
-                  )}
-                </RowFixed>
-                {trade ? (
-                  <RowFixed>
-                    <TradePrice
-                      price={trade.executionPrice}
-                      showInverted={showInverted}
-                      setShowInverted={setShowInverted}
-                    />
-                    <MouseoverTooltipContent
-                      content={<AdvancedSwapDetails trade={trade} allowedSlippage={allowedSlippage} />}
-                    >
-                      <StyledInfo />
-                    </MouseoverTooltipContent>
-                  </RowFixed>
-                ) : null}
-              </Row>
-              */
               <Card padding={showWrap ? '.25rem 1rem 0 1rem' : '0px'} $borderRadius={'20px'}>
                 <AutoColumn
                   style={{
@@ -756,14 +671,6 @@ LimitProps) {
                   )}
 
                   {!isExpertMode && !allowedSlippage.equalTo(INITIAL_ALLOWED_SLIPPAGE_PERCENT) && (
-                    // <RowBetween height={24} align="center">
-                    //   <ClickableText fontWeight={500} fontSize={14} color={theme.text2} onClick={toggleSettings}>
-                    //     <Trans>Slippage Tolerance</Trans>
-                    //   </ClickableText>
-                    //   <ClickableText fontWeight={500} fontSize={14} color={theme.text2} onClick={toggleSettings}>
-                    //     {formatSmart(allowedSlippage, PERCENTAGE_PRECISION)}%
-                    //   </ClickableText>
-                    // </RowBetween>
                     <RowSlippage allowedSlippage={allowedSlippage} fontSize={12} fontWeight={400} rowHeight={24} />
                   )}
                   {(isFeeGreater || trade) && fee && <TradeBasicDetails trade={trade} fee={fee} />}
@@ -808,7 +715,7 @@ LimitProps) {
                 <SwapButton showLoading={swapBlankState || isGettingNewQuote}>Connect Wallet</SwapButton>
               </ButtonPrimary>
             ) : !isSupportedWallet ? (
-              <ButtonError buttonSize={ButtonSize.BIG} id="limit-button" disabled={!isSupportedWallet}>
+              <ButtonError buttonSize={ButtonSize.BIG} id="market-button" disabled={!isSupportedWallet}>
                 <Text fontSize={20} fontWeight={500}>
                   <Trans>Wallet Unsupported</Trans>
                 </Text>
@@ -936,7 +843,7 @@ LimitProps) {
                       }
                     }}
                     width="100%"
-                    id="limit-button"
+                    id="swap-button"
                     disabled={
                       !isValid ||
                       (approvalState !== ApprovalState.APPROVED && signatureState !== UseERC20PermitState.SIGNED) // || priceImpactTooHigh
@@ -944,17 +851,8 @@ LimitProps) {
                     // error={isValid && priceImpactSeverity > 2}
                   >
                     <SwapButton showLoading={swapBlankState || isGettingNewQuote}>
-                      <Trans>Limit</Trans>
+                      <Trans>Sell</Trans>
                     </SwapButton>
-                    {/* <Text fontSize={16} fontWeight={500}>
-                        {priceImpactTooHigh ? (
-                          <Trans>High Price Impact</Trans>
-                        ) : priceImpactSeverity > 2 ? (
-                          <Trans>Limit Anyway</Trans>
-                        ) : (
-                          <Trans>Limit</Trans>
-                        )}
-                      </Text> */}
                   </ButtonError>
                 </AutoColumn>
               </AutoRow>
@@ -962,7 +860,6 @@ LimitProps) {
               <ButtonError
                 buttonSize={ButtonSize.BIG}
                 onClick={() => {
-                  console.log('Limit button', trade)
                   if (isExpertMode) {
                     handleSwap()
                   } else {
@@ -975,30 +872,21 @@ LimitProps) {
                     })
                   }
                 }}
-                id="limit-button"
+                id="market-button"
                 disabled={!isValid /*|| priceImpactTooHigh */ || !!swapCallbackError}
                 // error={isValid && priceImpactSeverity > 2 && !swapCallbackError}
               >
                 <SwapButton showLoading={swapBlankState || isGettingNewQuote}>
-                  {swapInputError || <Trans>Limit</Trans>}
+                  {swapInputError || <Trans>Buy</Trans>}
                 </SwapButton>
-                {/* <Text fontSize={20} fontWeight={500}>
-                    {swapInputError ? (
-                      swapInputError
-                    ) : priceImpactTooHigh ? (
-                      <Trans>Price Impact Too High</Trans>
-                    ) : priceImpactSeverity > 2 ? (
-                      <Trans>Limit Anyway</Trans>
-                    ) : (
-                      <Trans>Limit</Trans>
-                    )}
-                  </Text> */}
               </ButtonError>
             )}
             {isExpertMode ? <ErrorMessage error={swapErrorMessage} /> : null}
           </BottomGrouping>
         </Wrapper>
+        {/* </RowBetween> */}
       </StyledAppBody>
+
       {/* <SwitchLocaleLink /> */}
       {!swapIsUnsupported ? null : !isSupportedWallet ? (
         <UnsupportedCurrencyFooter

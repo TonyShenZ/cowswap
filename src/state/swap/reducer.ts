@@ -1,7 +1,15 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { parsedQueryString } from 'hooks/useParsedQueryString'
 
-import { Field, replaceSwapState, selectCurrency, setRecipient, switchCurrencies, typeInput } from './actions'
+import {
+  Field,
+  replaceSwapState,
+  selectCurrency,
+  setLimitPrice,
+  setRecipient,
+  switchCurrencies,
+  typeInput,
+} from './actions'
 import { queryParametersToSwapState } from './hooks'
 
 export interface SwapState {
@@ -32,7 +40,7 @@ export default createReducer<SwapState>(initialState, (builder) =>
           [Field.OUTPUT]: {
             currencyId: outputCurrencyId ?? null,
           },
-          limitPrice: '0',
+          limitPrice: '',
           independentField: field,
           typedValue,
           recipient,
@@ -40,6 +48,7 @@ export default createReducer<SwapState>(initialState, (builder) =>
       }
     )
     .addCase(selectCurrency, (state, { payload: { currencyId, field } }) => {
+      console.log('selectCurrency')
       const otherField = field === Field.INPUT ? Field.OUTPUT : Field.INPUT
       if (currencyId === state[otherField].currencyId) {
         // the case where we have to swap the order
@@ -66,11 +75,16 @@ export default createReducer<SwapState>(initialState, (builder) =>
       }
     })
     .addCase(typeInput, (state, { payload: { field, typedValue } }) => {
+      console.log('typeInput')
+
       return {
         ...state,
         independentField: field,
         typedValue,
       }
+    })
+    .addCase(setLimitPrice, (state, { payload: { limitPrice } }) => {
+      state.limitPrice = limitPrice
     })
     .addCase(setRecipient, (state, { payload: { recipient } }) => {
       state.recipient = recipient

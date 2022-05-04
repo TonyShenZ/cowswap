@@ -206,7 +206,7 @@ export function Web3StatusInner({
 
   const hasPendingTransactions = !!pending.length 
   */
-  const hasPendingTransactions = !!pendingCount
+  const hasPendingTransactions = false
   const hasSocks = useHasSocks()
   const toggleWalletModal = useWalletModalToggle()
 
@@ -249,7 +249,7 @@ export function Web3StatusInner({
         <RowBetween>
           <Text>
             <Trans>Connecting</Trans>...
-          </Text>{' '}
+          </Text>
           <Loader stroke="white" />
         </RowBetween>
       </Web3StatusConnected>

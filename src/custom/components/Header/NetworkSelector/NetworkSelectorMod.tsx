@@ -7,7 +7,7 @@ import // ARBITRUM_HELP_CENTER_LINK,
 // SupportedChainId
 '@src/constants/chains'
 import { CHAIN_INFO, ALL_SUPPORTED_CHAIN_IDS } from 'constants/chains'
-import { /* ArrowDownCircle, */ ChevronDown } from 'react-feather'
+// import { /* ArrowDownCircle, */ ChevronDown } from 'react-feather'
 import styled from 'styled-components/macro'
 import { /* ExternalLink, */ MEDIA_WIDTHS } from 'theme'
 import useChangeNetworks from 'hooks/useChangeNetworks'

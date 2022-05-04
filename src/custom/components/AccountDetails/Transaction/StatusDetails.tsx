@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import SVG from 'react-inlinesvg'
 import { LinkStyledButton, ExternalLink } from 'theme'
 
@@ -49,7 +49,6 @@ function _getStateLabel({
 }: ActivityDerivedState) {
   if (isPending) {
     if (enhancedTransaction) {
-      console.log('enhancedTransaction', enhancedTransaction)
       const { safeTransaction, transactionHash } = enhancedTransaction
       if (safeTransaction && !transactionHash) {
         return 'Signing...'

@@ -6,7 +6,9 @@ import { BoxProps, Text } from 'rebass'
 
 import { ButtonSize, TYPE } from 'theme/index'
 
-import OrderBookMod from './OrderBookMod'
+import SwapMod from './SwapMod'
+import LimitMod from './LimitMod'
+
 import { AutoRow, RowBetween } from 'components/Row'
 import { Wrapper as WrapperUni, Dots, Container } from 'components/swap/styleds'
 import { AutoColumn } from 'components/Column'
@@ -20,7 +22,7 @@ import {
   ButtonLight as ButtonLightMod,
 } from 'components/Button'
 import EthWethWrap, { Props as EthWethWrapProps } from 'components/swap/EthWethWrap'
-import { useReplaceSwapState, useSwapState } from 'state/swap/hooks'
+import { useDerivedSwapInfo, useReplaceSwapState, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
 import { ArrowWrapperLoader, ArrowWrapperLoaderProps, Wrapper as ArrowWrapper } from 'components/ArrowWrapperLoader'
 import { INITIAL_ALLOWED_SLIPPAGE_PERCENT, LONG_LOAD_THRESHOLD } from 'constants/index'
 import { Repeat } from 'react-feather'
@@ -34,6 +36,15 @@ import { useExpertModeManager, useUserSlippageToleranceWithDefault } from 'state
 import { HighFeeWarning, WarningProps, NoImpactWarning } from 'components/SwapWarnings'
 import { useHigherUSDValue } from 'hooks/useUSDCPrice'
 import { useWalletInfo } from 'hooks/useWalletInfo'
+import { MarkerOrderWrapper, OrderBookWrapper, OrderWrapper, TransactionContent } from './styleds'
+import TransactionHeader from './TransactionHeader'
+import Handicap from './Handicap'
+import TradingView from './TradingView'
+
+import Tabs, { Tab, TabList, TabPanel, TabPanels } from '@src/custom/components/Tabs'
+import Transactions from './Transactions'
+import Entrusts from './Entrusts'
+import SettingsTab from '@src/custom/components/Settings'
 
 interface TradeBasicDetailsProp extends BoxProps {
   trade?: TradeGp
@@ -52,6 +63,15 @@ const BottomGrouping = styled.div`
 `
 
 export const ButtonError = styled(ButtonErrorMod)`
+  background: ${({ theme }) => theme.primary6};
+  &:focus,
+  &:hover,
+  &:active {
+    border: ${({ theme }) => theme.buttonPrimary.border};
+    box-shadow: none;
+    transform: translateY(3px) scale(0.99);
+    background: ${({ theme }) => theme.primary6};
+  }
   > div,
   > div > div {
     width: 100%;
@@ -81,7 +101,61 @@ export const ButtonLight = styled(ButtonLightMod)`
   }
 `
 
-const OrderBookModWrapper = styled(OrderBookMod)`
+const SwapModWrapper = styled(SwapMod)`
+  ${(props) => props.className} {
+    // For now to target <SwapHeader /> without copying files...
+    > div:first-child {
+      padding: 0 12px 4px;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    ${WrapperUni} {
+      padding: 4px 4px 0;
+    }
+
+    ${AutoColumn} {
+      grid-row-gap: 8px;
+      margin: 0 0 12px;
+    }
+
+    ${ClickableText} {
+      color: ${({ theme }) => theme.text1};
+    }
+
+    ${Card} > ${AutoColumn} {
+      margin: 4px auto 0;
+      font-size: 13px;
+      grid-row-gap: 0;
+
+      > div > div,
+      > div > div div {
+        color: ${({ theme }) => theme.text1};
+        font-size: 13px;
+      }
+    }
+
+    ${GreyCard} {
+      > div {
+        color: ${({ theme }) => theme.text1};
+      }
+    }
+
+    ${InputContainer} > div > div > div {
+      color: ${({ theme }) => theme.text1};
+    }
+
+    .expertMode ${ArrowWrapper} {
+      position: relative;
+    }
+
+    ${AutoRow} {
+      z-index: 2;
+    }
+  }
+`
+
+const LimitModWrapper = styled(LimitMod)`
   ${(props) => props.className} {
     // For now to target <SwapHeader /> without copying files...
     > div:first-child {
@@ -319,6 +393,17 @@ const LongLoadText = styled.span`
   ${fadeIn}
 `
 
+const TabLists = styled(TabList)`
+  position: relative;
+`
+
+const SettingsTabComponents = styled(SettingsTab)`
+  position: absolute;
+  right: 12px;
+  top: 0;
+  bottom: 0;
+`
+
 type TradeLoadingProps = {
   showButton?: boolean
 }
@@ -370,24 +455,85 @@ const SwapButton = ({ children, showLoading, showButton = false }: SwapButtonPro
 
 export default function OrderBook(props: RouteComponentProps) {
   const { allowsOffchainSigning } = useWalletInfo()
+  const { onLimitPriceInput } = useSwapActionHandlers()
+
+  const { allowedSlippage } = useDerivedSwapInfo(/* toggledVersion */)
+  const [defaultIndex, setDefaultIndex] = useState(0)
+
+  const tabChange = useCallback(
+    (i) => {
+      onLimitPriceInput('')
+      setDefaultIndex(i)
+    },
+    [setDefaultIndex, onLimitPriceInput]
+  )
 
   return (
     <Container>
-      <OrderBookModWrapper
-        TradeBasicDetails={TradeBasicDetails}
-        EthWethWrapMessage={EthWethWrapMessage}
-        SwitchToWethBtn={SwitchToWethBtn}
-        FeesExceedFromAmountMessage={FeesExceedFromAmountMessage}
-        BottomGrouping={BottomGrouping}
-        SwapButton={SwapButton}
-        TradeLoading={TradeLoading}
-        ArrowWrapperLoader={ArrowWrapperLoader}
-        Price={Price}
-        HighFeeWarning={HighFeeWarning}
-        NoImpactWarning={NoImpactWarning}
-        allowsOffchainSigning={allowsOffchainSigning}
-        {...props}
-      />
+      <OrderBookWrapper>
+        <TransactionHeader />
+        <TransactionContent>
+          <Handicap />
+          <MarkerOrderWrapper gap="5px">
+            <TradingView />
+            <OrderWrapper>
+              <Tabs index={defaultIndex} onChange={tabChange}>
+                <TabLists justify={'start'}>
+                  <Tab>
+                    <Text fontSize={14} padding={'12px 0 10px'}>
+                      <Trans>Market order</Trans>
+                    </Text>
+                  </Tab>
+                  <Tab>
+                    <Text fontSize={14} padding={'12px 0 10px'}>
+                      <Trans>Limit order</Trans>
+                    </Text>
+                  </Tab>
+                  <SettingsTabComponents placeholderSlippage={allowedSlippage} />
+                </TabLists>
+                <TabPanels style={{ padding: '0' }}>
+                  <TabPanel>
+                    <SwapModWrapper
+                      TradeBasicDetails={TradeBasicDetails}
+                      EthWethWrapMessage={EthWethWrapMessage}
+                      SwitchToWethBtn={SwitchToWethBtn}
+                      FeesExceedFromAmountMessage={FeesExceedFromAmountMessage}
+                      BottomGrouping={BottomGrouping}
+                      SwapButton={SwapButton}
+                      TradeLoading={TradeLoading}
+                      ArrowWrapperLoader={ArrowWrapperLoader}
+                      Price={Price}
+                      HighFeeWarning={HighFeeWarning}
+                      NoImpactWarning={NoImpactWarning}
+                      allowsOffchainSigning={allowsOffchainSigning}
+                      {...props}
+                    />
+                  </TabPanel>
+                  <TabPanel>
+                    <LimitModWrapper
+                      TradeBasicDetails={TradeBasicDetails}
+                      EthWethWrapMessage={EthWethWrapMessage}
+                      SwitchToWethBtn={SwitchToWethBtn}
+                      FeesExceedFromAmountMessage={FeesExceedFromAmountMessage}
+                      BottomGrouping={BottomGrouping}
+                      SwapButton={SwapButton}
+                      TradeLoading={TradeLoading}
+                      ArrowWrapperLoader={ArrowWrapperLoader}
+                      Price={Price}
+                      HighFeeWarning={HighFeeWarning}
+                      NoImpactWarning={NoImpactWarning}
+                      allowsOffchainSigning={allowsOffchainSigning}
+                      {...props}
+                    />
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+            </OrderWrapper>
+          </MarkerOrderWrapper>
+          <Transactions />
+        </TransactionContent>
+        <Entrusts />
+      </OrderBookWrapper>
     </Container>
   )
 }

@@ -1,23 +1,22 @@
-import { useDarkModeManager } from '@src/custom/state/user/hooks'
-import TradingViewChart from '../../components/TradingViewChart'
-import { ChartProperties } from './styleds'
+import styled from 'styled-components/macro'
 
-// function getLocalLanguage() {
-//   return navigator.language.split('-')[0] || 'en'
-// }
-
+const ChartWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  min-height: 467px;
+`
+const KChartIframe = styled.iframe`
+  border: none;
+  width: 100%;
+  height: 100%;
+`
 export default function TradingView() {
-  const [darkMode] = useDarkModeManager()
-  const cOptions: ChartProperties = {
-    locale: 'en',
-    debug: false,
-    fullscreen: false,
-    symbol: 'BTCUSDT',
-    interval: '60',
-    theme: darkMode ? 'Dark' : 'Light',
-    allow_symbol_change: true,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    autosize: true,
-  }
-  return <TradingViewChart chartProperties={cOptions} />
+  return (
+    <ChartWrapper>
+      <KChartIframe
+        src="https://xxx.komtoken.com/pair/0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc"
+        title="uniswap kchart"
+      />
+    </ChartWrapper>
+  )
 }
