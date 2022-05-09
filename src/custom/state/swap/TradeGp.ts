@@ -2,6 +2,7 @@ import { CanonicalMarketParams, getCanonicalMarket } from 'utils/misc'
 import { FeeInformation, PriceInformation } from 'utils/price'
 import { CurrencyAmount, Currency, TradeType, Price, Percent, Fraction } from '@uniswap/sdk-core'
 import { Trade } from '@uniswap/v2-sdk'
+import { parseEther } from '@ethersproject/units'
 
 export type FeeForTrade = { feeAsCurrency: CurrencyAmount<Currency> } & Pick<FeeInformation, 'amount'>
 
@@ -11,13 +12,17 @@ export type TradeWithFee = Omit<Trade<Currency, Currency, TradeType>, 'nextMidPr
   fee: FeeForTrade
 }
 
-type TradeExecutionPrice = CanonicalMarketParams<CurrencyAmount<Currency> | undefined> & { price?: PriceInformation }
+type TradeExecutionPrice = CanonicalMarketParams<CurrencyAmount<Currency> | undefined> & {
+  price?: PriceInformation
+  limit?: string
+}
 
 export function _constructTradePrice({
   sellToken,
   buyToken,
   kind,
   price,
+  limit,
 }: TradeExecutionPrice): Price<Currency, Currency> | undefined {
   if (!sellToken || !buyToken || !price?.amount) return
 
@@ -31,14 +36,34 @@ export function _constructTradePrice({
   })
 
   if (baseToken && quoteToken && price) {
-    executionPrice = new Price<Currency, Currency>(
-      // baseToken.currency,
-      // quoteToken.currency,
-      // baseToken.currency.quotient,
-      // price.amount
-      // TODO: CHECK THIS IS THE SAME AS THE ABOVE ON THE OLDER SDK
-      { baseAmount: baseToken, quoteAmount: CurrencyAmount.fromRawAmount(quoteToken.currency, price.amount) }
-    )
+    if (limit) {
+      executionPrice = new Price<Currency, Currency>(
+        // baseToken.currency,
+        // quoteToken.currency,
+        // baseToken.currency.quotient,
+        // price.amount
+        // TODO: CHECK THIS IS THE SAME AS THE ABOVE ON THE OLDER SDK
+        {
+          baseAmount: baseToken,
+          quoteAmount: CurrencyAmount.fromRawAmount(
+            quoteToken.currency,
+            parseEther(String(parseFloat(limit) * parseFloat(baseToken.toSignificant(4)))).toString()
+          ),
+        }
+      )
+    } else {
+      executionPrice = new Price<Currency, Currency>(
+        // baseToken.currency,
+        // quoteToken.currency,
+        // baseToken.currency.quotient,
+        // price.amount
+        // TODO: CHECK THIS IS THE SAME AS THE ABOVE ON THE OLDER SDK
+        {
+          baseAmount: baseToken,
+          quoteAmount: CurrencyAmount.fromRawAmount(quoteToken.currency, price.amount),
+        }
+      )
+    }
   }
   return executionPrice
 }

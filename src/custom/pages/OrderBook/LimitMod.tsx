@@ -41,7 +41,7 @@ import { ApprovalState, useApproveCallbackFromTrade } from 'hooks/useApproveCall
 import useENSAddress from 'hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from 'hooks/useERC20Permit'
 import { useIsSwapUnsupported } from 'hooks/useIsSwapUnsupported'
-import { useSwapCallback } from 'hooks/useSwapCallback'
+import { useLimitCallback } from 'hooks/useLimitCallback'
 import { /* useToggledVersion, */ Version } from 'hooks/useToggledVersion'
 import { useHigherUSDValue /* , useUSDCValue */ } from 'hooks/useUSDCPrice'
 
@@ -393,7 +393,7 @@ export default function Limit({
   const showMaxButton = Boolean(maxInputAmount?.greaterThan(0) && !parsedAmounts[Field.INPUT]?.equalTo(maxInputAmount))
 
   // the callback to execute the limit
-  const { callback: swapCallback, error: swapCallbackError } = useSwapCallback({
+  const { callback: limitCallback, error: swapCallbackError } = useLimitCallback({
     trade,
     allowedSlippage,
     recipientAddressOrName: recipient,
@@ -411,14 +411,14 @@ export default function Limit({
   })
 
   const handleSwap = useCallback(() => {
-    if (!swapCallback) {
+    if (!limitCallback) {
       return
     }
     if (priceImpact && !confirmPriceImpactWithoutFee(priceImpact)) {
       return
     }
     setSwapState({ attemptingTxn: true, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: undefined })
-    swapCallback()
+    limitCallback()
       .then((hash) => {
         setSwapState({ attemptingTxn: false, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: hash })
         ReactGA.event({
@@ -447,7 +447,7 @@ export default function Limit({
           txHash: undefined,
         })
       })
-  }, [swapCallback, priceImpact, tradeToConfirm, showConfirm, recipient, recipientAddress, account, trade])
+  }, [limitCallback, priceImpact, tradeToConfirm, showConfirm, recipient, recipientAddress, account, trade])
 
   // errors
   const [showInverted, setShowInverted] = useState<boolean>(false)

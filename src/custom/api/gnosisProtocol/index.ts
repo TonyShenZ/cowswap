@@ -19,5 +19,6 @@ export const {
   getPriceQuoteLegacy = realApi.getPriceQuoteLegacy,
   getOrder = realApi.getOrder,
   getTrades = realApi.getTrades,
+  getBuyAndSellOrders = realApi.getBuyAndSellOrders,
   // functions that only have a mock
 } = useMock ? { ...mockApi } : { ...realApi }

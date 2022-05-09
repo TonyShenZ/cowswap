@@ -145,7 +145,7 @@ async function _limit(params: LimitParams): Promise<string> {
 
   // Log the trade
   console.trace(
-    `[useSwapCallback] >> Trading ${tradeType} 
+    `[useLimitCallback] >> Trading ${tradeType} 
       1. Original Input = ${inputAmountWithSlippage.toExact()}
       2. Fee = ${fee?.feeAsCurrency?.toExact() || '0'}
       3. Input Adjusted for Fee = ${inputAmountWithFee.toExact()}
@@ -212,7 +212,7 @@ async function _limit(params: LimitParams): Promise<string> {
     if (wrapPromise) {
       // Wait for order and the wrap
       const [orderAux, wrapTx] = await Promise.all([postOrderPromise, wrapPromise])
-      console.log('[useSwapCallback] Wrapped ETH successfully. Tx: ', wrapTx)
+      console.log('[useLimitCallback] Wrapped ETH successfully. Tx: ', wrapTx)
       pendingOrderParams = orderAux
     } else {
       // Wait just for the order
@@ -259,7 +259,7 @@ async function _limit(params: LimitParams): Promise<string> {
  * @param params
  * @returns
  */
-export function useSwapCallback(params: LimitCallbackParams): {
+export function useLimitCallback(params: LimitCallbackParams): {
   state: SwapCallbackState
   callback: null | (() => Promise<string>)
   error: string | null

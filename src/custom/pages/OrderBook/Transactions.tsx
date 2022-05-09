@@ -1,4 +1,5 @@
 import styled from 'styled-components/macro'
+import dayjs from 'dayjs'
 import { CurrencyAmount } from '@uniswap/sdk-core'
 import { Text } from 'rebass'
 import Tabs, { Tab, TabList, TabPanel, TabPanels } from '@src/custom/components/Tabs'
@@ -9,6 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TradeMetaData } from '@src/custom/api/gnosisProtocol/api'
 import { useCurrency } from '@src/hooks/Tokens'
 import { formatSmart } from '@src/custom/utils/format'
+import { useTokenTransactions, useUserTransactions } from '@src/custom/api/apollo/hooks'
 
 const TransactionsWrapper = styled.div`
   background: ${({ theme }) => theme.bg9};
@@ -41,6 +43,11 @@ const TableWrapper = styled.table`
 
 export default function Transactions() {
   const { account, chainId } = useActiveWeb3React()
+
+  // const transactions = useUserTransactions(account)
+
+  const recentTransactions = useTokenTransactions('0xf855e52ecc8b3b795ac289f85f6fd7a99883492b')
+
   const [trades, setTrades] = useState<TradeMetaData[]>([])
   // console.log('trades get', trades)
 
@@ -76,7 +83,37 @@ export default function Transactions() {
           </Tab>
         </TabList>
         <TabPanels style={{ padding: '0' }}>
-          <TabPanel></TabPanel>
+          <TabPanel>
+            {recentTransactions && recentTransactions.length > 0 && (
+              <TableWrapper>
+                <thead>
+                  <tr>
+                    <th align="left">
+                      <Text fontSize={12}>Price ({recentTransactions[0].pair.token0.symbol})</Text>
+                    </th>
+                    <th align="right">
+                      <Text fontSize={12}>Amount ({recentTransactions[0].pair.token1.symbol})</Text>
+                    </th>
+                    <th>
+                      <Text fontSize={12}>Time</Text>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentTransactions.map((item) => (
+                    <tr key={item.id}>
+                      <td align={'left'}>{formattedNum(item?.amount0Out)}</td>
+                      <td align={'right'}>{formattedNum(item?.amount1In)}</td>
+                      <td align={'center'} width={80}>
+                        {dayjs(item.transaction.timestamp).format('HH:mm:ss')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </TableWrapper>
+            )}
+          </TabPanel>
+
           <TabPanel>
             <TableWrapper>
               <thead>
@@ -140,4 +177,26 @@ function Activity({ activity }: { activity: TradeMetaData }) {
       <td align={'left'}>{time}</td>
     </tr>
   )
+}
+
+export const formattedNum = (number: string, usd = false, acceptNegatives = false) => {
+  const num = parseFloat(number)
+
+  if (num > 500000000) {
+    return num.toFixed(0)
+  }
+
+  if (num === 0) {
+    return 0
+  }
+
+  if (num < 0.0001 && num > 0) {
+    return '< 0.0001'
+  }
+
+  if (num > 1000) {
+    return Number(num.toFixed(0)).toLocaleString()
+  }
+
+  return Number(num.toFixed(4)).toString()
 }

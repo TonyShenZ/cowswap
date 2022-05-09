@@ -220,8 +220,6 @@ function ActivityDetails(props: {
   // Order Summary default object
   let orderSummary: OrderSummaryType
   if (order) {
-    console.log('Order Summary default object')
-
     const { inputToken, sellAmount, feeAmount, outputToken, buyAmount, validTo, kind, fulfillmentTime } = order
 
     const sellAmt = CurrencyAmount.fromRawAmount(inputToken, sellAmount.toString())

@@ -1,12 +1,18 @@
 import styled from 'styled-components/macro'
+import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { Text } from 'rebass'
 import { RowFixed } from '@src/components/Row'
-import { useGpBuyAndSellOrders } from '@src/custom/api/gnosisProtocol/hooks'
+import { getBuyAndSellOrders, OrderMetaData } from '@src/custom/api/gnosisProtocol'
 import { formatEther } from '@ethersproject/units'
 import { BigNumber } from '@ethersproject/bignumber'
 import { formatNumber } from '@src/custom/utils'
 import { useCurrency } from '@src/hooks/Tokens'
 import { useSwapState } from '@src/state/swap/hooks'
+import { useCallback, useState } from 'react'
+import { useActiveWeb3React } from '@src/hooks/web3'
+import useInterval from '@src/hooks/useInterval'
+import { formatSmart } from '@src/custom/utils/format'
+import { getLimitPrice } from '@src/custom/state/orders/utils'
 
 const HandicapWrapper = styled.div`
   background: ${({ theme }) => theme.bg9};
@@ -33,33 +39,39 @@ const OrderHeader = styled(OrderItem)`
 `
 export default function Handicap() {
   const { INPUT, OUTPUT } = useSwapState()
+  const { chainId } = useActiveWeb3React()
 
   const inputCurrency = useCurrency(INPUT?.currencyId)
   const outputCurrency = useCurrency(OUTPUT?.currencyId)
 
-  const buyList = useGpBuyAndSellOrders(inputCurrency?.wrapped.address, outputCurrency?.wrapped?.address)
-  const sellList = useGpBuyAndSellOrders(outputCurrency?.wrapped?.address, outputCurrency?.wrapped?.address)
+  const [{ sellList, buyList }, setList] = useState<{ sellList: OrderMetaData[]; buyList: OrderMetaData[] }>({
+    sellList: [],
+    buyList: [],
+  })
+
+  const getList = useCallback(async () => {
+    if (!INPUT?.currencyId || !OUTPUT?.currencyId || !chainId) return
+
+    const sell = await getBuyAndSellOrders(chainId, INPUT?.currencyId, OUTPUT?.currencyId)
+    const buy = await getBuyAndSellOrders(chainId, OUTPUT?.currencyId, INPUT?.currencyId)
+
+    setList({
+      sellList: sell,
+      buyList: buy,
+    })
+  }, [chainId, INPUT, OUTPUT, setList])
+
+  useInterval(getList, !INPUT?.currencyId || !OUTPUT?.currencyId || !chainId ? null : 5000)
 
   return (
     <HandicapWrapper>
       <HandicapOrderWrapper>
         <OrderHeader>
-          <Text>Pcice({inputCurrency?.symbol})</Text>
-          <Text>Amout({outputCurrency?.symbol})</Text>
+          <Text>Pcice({outputCurrency?.symbol})</Text>
+          <Text>Amout({inputCurrency?.symbol})</Text>
           <Text>Turnover</Text>
         </OrderHeader>
-        <div id="sell">
-          {sellList &&
-            sellList.map((item) => (
-              <OrderItem key={item.uid}>
-                <Text fontSize={12}>
-                  {formatNumber(formatEther(BigNumber.from(item.sellAmount).div(item.buyAmount)))}
-                </Text>
-                <Text fontSize={12}>{formatNumber(formatEther(BigNumber.from(item.sellAmount)))}</Text>
-                <Text fontSize={12}>{formatNumber(formatEther(BigNumber.from(item.buyAmount)))}</Text>
-              </OrderItem>
-            ))}
-        </div>
+        <div id="sell">{sellList && sellList.map((item) => <CompileOrderItem key={item.uid} order={item} />)}</div>
 
         <RowFixed gap="4px" padding={'10px 0'}>
           <Text fontSize={20} lineHeight={'23px'} marginRight={'4px'}>
@@ -75,19 +87,60 @@ export default function Handicap() {
             $000.00
           </Text>
         </RowFixed>
-        <div id="buy">
-          {buyList &&
-            buyList.map((item) => (
-              <OrderItem key={item.uid}>
-                <Text fontSize={12}>
-                  {formatNumber(formatEther(BigNumber.from(item.buyAmount).div(item.sellAmount)))}
-                </Text>
-                <Text fontSize={12}>{formatNumber(formatEther(BigNumber.from(item.buyAmount)))}</Text>
-                <Text fontSize={12}>{formatNumber(formatEther(BigNumber.from(item.sellAmount)))}</Text>
-              </OrderItem>
-            ))}
-        </div>
+        <div id="buy">{buyList && buyList.map((item) => <CompileBuyOrderItem key={item.uid} order={item} />)}</div>
       </HandicapOrderWrapper>
     </HandicapWrapper>
+  )
+}
+
+function CompileOrderItem({ order }: { order: OrderMetaData }) {
+  const sell = useCurrency(order.sellToken)
+  const buy = useCurrency(order.buyToken)
+  if (!sell || !buy) return null
+
+  const sellAmt = CurrencyAmount.fromRawAmount(sell, order.sellAmount.toString())
+  const buyAmt = CurrencyAmount.fromRawAmount(buy, order.buyAmount.toString())
+
+  const limitPrice = formatSmart(
+    getLimitPrice({
+      buyAmount: order.sellAmount.toString(),
+      sellAmount: order.buyAmount.toString(),
+      buyTokenDecimals: sell.decimals,
+      sellTokenDecimals: buy.decimals,
+      inverted: true, // TODO: handle invert price
+    })
+  )
+  return (
+    <OrderItem>
+      <Text fontSize={12}>{limitPrice}</Text>
+      <Text fontSize={12}>{sellAmt.toSignificant(3)}</Text>
+      <Text fontSize={12}>{buyAmt.toSignificant(3)}</Text>
+    </OrderItem>
+  )
+}
+
+function CompileBuyOrderItem({ order }: { order: OrderMetaData }) {
+  const token0 = useCurrency(order.buyToken)
+  const token1 = useCurrency(order.sellToken)
+  if (!token0 || !token1) return null
+
+  const token0Amt = CurrencyAmount.fromRawAmount(token0, order.sellAmount.toString())
+  const token1Amt = CurrencyAmount.fromRawAmount(token1, order.buyAmount.toString())
+
+  const limitPrice = formatSmart(
+    getLimitPrice({
+      buyAmount: token1Amt.toExact(),
+      sellAmount: token0Amt.toExact(),
+      buyTokenDecimals: token1.decimals,
+      sellTokenDecimals: token0.decimals,
+      inverted: true, // TODO: handle invert price
+    })
+  )
+  return (
+    <OrderItem>
+      <Text fontSize={12}>{limitPrice}</Text>
+      <Text fontSize={12}>{token1Amt.toSignificant(3)}</Text>
+      <Text fontSize={12}>{token0Amt.toSignificant(3)}</Text>
+    </OrderItem>
   )
 }

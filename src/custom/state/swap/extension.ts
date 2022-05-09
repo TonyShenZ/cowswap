@@ -61,19 +61,15 @@ export function useTradeExactInWithFee({
     buyToken: outputAmount,
     kind: OrderKind.SELL,
     price: quote?.price,
+    limit: limitPrice,
   })
   // no price object or feeAdjusted amount? no trade
   if (!executionPrice || !feeAdjustedAmount) return null
 
-  // eslint-disable-next-line
-  let executionPrices: Price<Currency, Currency> = executionPrice
-
   // calculate our output without any fee, consuming price
   // useful for calculating fees in buy token
 
-  const outputAmountWithoutFee = executionPrices
-    .quote(parsedInputAmount)
-    .divide(limitPrice ? executionPrice.divide(limitPrice) : '1')
+  const outputAmountWithoutFee = executionPrice.quote(parsedInputAmount)
 
   return new TradeGp({
     inputAmount: parsedInputAmount,
@@ -82,7 +78,7 @@ export function useTradeExactInWithFee({
     outputAmount,
     outputAmountWithoutFee,
     fee,
-    executionPrice: executionPrices,
+    executionPrice,
     tradeType: TradeType.EXACT_INPUT,
   })
 }
