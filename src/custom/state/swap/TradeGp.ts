@@ -36,7 +36,7 @@ export function _constructTradePrice({
   })
 
   if (baseToken && quoteToken && price) {
-    if (limit) {
+    if (limit && parseFloat(limit) > 0) {
       executionPrice = new Price<Currency, Currency>(
         // baseToken.currency,
         // quoteToken.currency,

@@ -1,18 +1,17 @@
 import styled from 'styled-components/macro'
-import { CurrencyAmount, Token } from '@uniswap/sdk-core'
+import { CurrencyAmount } from '@uniswap/sdk-core'
 import { Text } from 'rebass'
 import { RowFixed } from '@src/components/Row'
 import { getBuyAndSellOrders, OrderMetaData } from '@src/custom/api/gnosisProtocol'
-import { formatEther } from '@ethersproject/units'
-import { BigNumber } from '@ethersproject/bignumber'
-import { formatNumber } from '@src/custom/utils'
 import { useCurrency } from '@src/hooks/Tokens'
 import { useSwapState } from '@src/state/swap/hooks'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useActiveWeb3React } from '@src/hooks/web3'
 import useInterval from '@src/hooks/useInterval'
 import { formatSmart } from '@src/custom/utils/format'
 import { getLimitPrice } from '@src/custom/state/orders/utils'
+import { usePairData } from '@src/custom/api/apollo/hooks'
+import { formattedNum } from '@src/custom/utils'
 
 const HandicapWrapper = styled.div`
   background: ${({ theme }) => theme.bg9};
@@ -44,6 +43,15 @@ export default function Handicap() {
   const inputCurrency = useCurrency(INPUT?.currencyId)
   const outputCurrency = useCurrency(OUTPUT?.currencyId)
 
+  const pairAddress = useMemo(() => {
+    if (inputCurrency && inputCurrency?.symbol?.indexOf('BNB') !== -1) {
+      return '0xe0e92035077c39594793e61802a350347c320cf2'
+    }
+    return '0xf855e52ecc8b3b795ac289f85f6fd7a99883492b'
+  }, [inputCurrency])
+
+  const pairData = usePairData(pairAddress)
+
   const [{ sellList, buyList }, setList] = useState<{ sellList: OrderMetaData[]; buyList: OrderMetaData[] }>({
     sellList: [],
     buyList: [],
@@ -69,13 +77,13 @@ export default function Handicap() {
         <OrderHeader>
           <Text>Pcice({outputCurrency?.symbol})</Text>
           <Text>Amout({inputCurrency?.symbol})</Text>
-          <Text>Turnover</Text>
+          <Text>Total</Text>
         </OrderHeader>
         <div id="sell">{sellList && sellList.map((item) => <CompileOrderItem key={item.uid} order={item} />)}</div>
 
         <RowFixed gap="4px" padding={'10px 0'}>
           <Text fontSize={20} lineHeight={'23px'} marginRight={'4px'}>
-            000.0
+            {pairData.pairs ? formattedNum(pairData.pairs.token0Price) : '-'}
           </Text>
           <svg width="9" height="14" viewBox="0 0 9 14" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -84,7 +92,7 @@ export default function Handicap() {
             />
           </svg>
           <Text fontSize={14} marginLeft={'5px'}>
-            $000.00
+            ${formattedNum(pairData.pairs.token0Price)}
           </Text>
         </RowFixed>
         <div id="buy">{buyList && buyList.map((item) => <CompileBuyOrderItem key={item.uid} order={item} />)}</div>
@@ -112,7 +120,9 @@ function CompileOrderItem({ order }: { order: OrderMetaData }) {
   )
   return (
     <OrderItem>
-      <Text fontSize={12}>{limitPrice}</Text>
+      <Text fontSize={12} color="#E74358">
+        {limitPrice}
+      </Text>
       <Text fontSize={12}>{sellAmt.toSignificant(3)}</Text>
       <Text fontSize={12}>{buyAmt.toSignificant(3)}</Text>
     </OrderItem>
@@ -138,7 +148,9 @@ function CompileBuyOrderItem({ order }: { order: OrderMetaData }) {
   )
   return (
     <OrderItem>
-      <Text fontSize={12}>{limitPrice}</Text>
+      <Text fontSize={12} color="#1ED392">
+        {limitPrice}
+      </Text>
       <Text fontSize={12}>{token1Amt.toSignificant(3)}</Text>
       <Text fontSize={12}>{token0Amt.toSignificant(3)}</Text>
     </OrderItem>

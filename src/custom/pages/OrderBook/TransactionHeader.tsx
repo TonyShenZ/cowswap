@@ -4,6 +4,9 @@ import { Text } from 'rebass'
 import Row from '@src/components/Row'
 import { useSwapState } from '@src/state/swap/hooks'
 import { useCurrency } from '@src/hooks/Tokens'
+import { useMemo } from 'react'
+import { usePairData } from '@src/custom/api/apollo/hooks'
+import { formattedNum } from '@src/custom/utils'
 
 const TransactionHeaderWrapper = styled(Row)`
   display: grid;
@@ -26,6 +29,15 @@ export default function TransactionHeader() {
   const inputCurrency = useCurrency(INPUT?.currencyId)
   const outputCurrency = useCurrency(OUTPUT?.currencyId)
 
+  const pairAddress = useMemo(() => {
+    if (inputCurrency && inputCurrency?.symbol?.indexOf('BNB') !== -1) {
+      return '0xe0e92035077c39594793e61802a350347c320cf2'
+    }
+    return '0xf855e52ecc8b3b795ac289f85f6fd7a99883492b'
+  }, [inputCurrency])
+
+  const pairData = usePairData(pairAddress)
+
   return (
     <TransactionHeaderWrapper>
       <div>
@@ -34,10 +46,10 @@ export default function TransactionHeader() {
       <TransactionHeaderDownUp>
         <Column>
           <Text fontSize={16} lineHeight={'19px'}>
-            442.9
+            {pairData.pairs ? formattedNum(pairData.pairs.token0Price) : '-'}
           </Text>
           <Text fontSize={12} lineHeight={'14px'}>
-            $442.90
+            $ {pairData.pairs ? formattedNum(pairData.pairs.token0Price) : '-'}
           </Text>
         </Column>
         <Column>
@@ -45,7 +57,7 @@ export default function TransactionHeader() {
             24h change
           </Text>
           <Text fontSize={14} lineHeight={'16px'}>
-            $4.2703
+            $ -
           </Text>
         </Column>
         <Column>
@@ -53,7 +65,7 @@ export default function TransactionHeader() {
             Total Liquidity
           </Text>
           <Text fontSize={14} lineHeight={'16px'}>
-            $4,401,928
+            $ {pairData.pairs ? formattedNum(pairData.pairs.reserveUSD) : '-'}
           </Text>
         </Column>
         <Column>
@@ -61,7 +73,7 @@ export default function TransactionHeader() {
             Volume(24h)
           </Text>
           <Text fontSize={14} lineHeight={'16px'}>
-            407.94k
+            {pairData.pairDayDatas ? formattedNum(pairData.pairDayDatas) : '-'}
           </Text>
         </Column>
         <Column>
@@ -69,7 +81,7 @@ export default function TransactionHeader() {
             24h High
           </Text>
           <Text fontSize={14} lineHeight={'16px'}>
-            445.27
+            -
           </Text>
         </Column>
         <Column>
@@ -77,7 +89,7 @@ export default function TransactionHeader() {
             24h Low
           </Text>
           <Text fontSize={14} lineHeight={'16px'}>
-            439.27
+            -
           </Text>
         </Column>
       </TransactionHeaderDownUp>

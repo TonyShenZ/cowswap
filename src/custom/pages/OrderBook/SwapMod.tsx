@@ -805,7 +805,7 @@ export default function Swap({
                         {approvalState === ApprovalState.APPROVED || signatureState === UseERC20PermitState.SIGNED ? (
                           <Trans>You can now trade {currencies[Field.INPUT]?.symbol}</Trans>
                         ) : (
-                          <Trans>Allow CowSwap to use your {currencies[Field.INPUT]?.symbol}</Trans>
+                          <Trans>Allow testSwap to use your {currencies[Field.INPUT]?.symbol}</Trans>
                         )}
                         {approvalState === ApprovalState.PENDING ? (
                           <Loader stroke="white" />
@@ -877,7 +877,7 @@ export default function Swap({
                 // error={isValid && priceImpactSeverity > 2 && !swapCallbackError}
               >
                 <SwapButton showLoading={swapBlankState || isGettingNewQuote}>
-                  {swapInputError || <Trans>Buy</Trans>}
+                  {swapInputError || <Trans>Swap</Trans>}
                 </SwapButton>
               </ButtonError>
             )}

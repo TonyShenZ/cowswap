@@ -31,7 +31,7 @@ import {
 // import { EventUpdater } from 'state/orders/mocks'
 import ThemeProvider, { FixedGlobalStyle, ThemedGlobalStyle } from 'theme'
 import getLibrary from 'utils/getLibrary'
-import AppziButton from 'components/AppziButton'
+// import AppziButton from 'components/AppziButton'
 import RadialGradientByChainUpdater from 'theme/RadialGradientByChainUpdater'
 import { nodeRemoveChildFix } from 'utils/node'
 
@@ -78,7 +78,7 @@ ReactDOM.render(
                 <Updaters />
                 <ThemeProvider>
                   <ThemedGlobalStyle />
-                  <AppziButton />
+                  {/* <AppziButton /> */}
                   <App />
                 </ThemeProvider>
               </Blocklist>

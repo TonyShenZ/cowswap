@@ -1,10 +1,11 @@
 import AppMod from './AppMod'
 import styled from 'styled-components/macro'
-import { RedirectPathToSwapOnly, RedirectToSwap } from 'pages/Swap/redirects'
+import { RedirectPathToSwapOnly } from 'pages/Swap/redirects'
+// import { RedirectPathToSwapOnly, RedirectToSwap } from 'pages/Swap/redirects'
 import { Suspense, lazy } from 'react'
 import { Route, Switch } from 'react-router-dom'
 
-import AnySwapAffectedUsers from 'pages/error/AnySwapAffectedUsers'
+// import AnySwapAffectedUsers from 'pages/error/AnySwapAffectedUsers'
 import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { version } from '@src/../package.json'
@@ -16,25 +17,25 @@ import { SENTRY_IGNORED_GP_QUOTE_ERRORS } from 'api/gnosisProtocol/errors/QuoteE
 const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN
 const SENTRY_TRACES_SAMPLE_RATE = process.env.REACT_APP_SENTRY_TRACES_SAMPLE_RATE
 
-const Swap = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Swap'))
-const Limit = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Limit'))
+// const Swap = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Swap'))
+// const Limit = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Limit'))
 const OrderBook = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/OrderBook'))
 
-const Claim = lazy(() => import(/* webpackChunkName: "claim" */ 'pages/Claim'))
-const PrivacyPolicy = lazy(() => import(/* webpackChunkName: "privacy_policy" */ 'pages/PrivacyPolicy'))
-const CookiePolicy = lazy(() => import(/* webpackChunkName: "cookie_policy" */ 'pages/CookiePolicy'))
-const TermsAndConditions = lazy(() => import(/* webpackChunkName: "terms" */ 'pages/TermsAndConditions'))
-const About = lazy(() => import(/* webpackChunkName: "about" */ 'pages/About'))
-const Profile = lazy(() => import(/* webpackChunkName: "profile" */ 'pages/Profile'))
+// const Claim = lazy(() => import(/* webpackChunkName: "claim" */ 'pages/Claim'))
+// const PrivacyPolicy = lazy(() => import(/* webpackChunkName: "privacy_policy" */ 'pages/PrivacyPolicy'))
+// const CookiePolicy = lazy(() => import(/* webpackChunkName: "cookie_policy" */ 'pages/CookiePolicy'))
+// const TermsAndConditions = lazy(() => import(/* webpackChunkName: "terms" */ 'pages/TermsAndConditions'))
+// const About = lazy(() => import(/* webpackChunkName: "about" */ 'pages/About'))
+// const Profile = lazy(() => import(/* webpackChunkName: "profile" */ 'pages/Profile'))
 const NotFound = lazy(() => import(/* webpackChunkName: "not_found" */ 'pages/error/NotFound'))
-const CowRunner = lazy(() => import(/* webpackChunkName: "cow_runner" */ 'pages/games/CowRunner'))
-const MevSlicer = lazy(() => import(/* webpackChunkName: "mev_slicer" */ 'pages/games/MevSlicer'))
+// const CowRunner = lazy(() => import(/* webpackChunkName: "cow_runner" */ 'pages/games/CowRunner'))
+// const MevSlicer = lazy(() => import(/* webpackChunkName: "mev_slicer" */ 'pages/games/MevSlicer'))
 
-const Faq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq'))
-const ProtocolFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/ProtocolFaq'))
-const TokenFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/TokenFaq'))
-const TradingFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/TradingFaq'))
-const AffiliateFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/AffiliateFaq'))
+// const Faq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq'))
+// const ProtocolFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/ProtocolFaq'))
+// const TokenFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/TokenFaq'))
+// const TradingFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/TradingFaq'))
+// const AffiliateFaq = lazy(() => import(/* webpackChunkName: "faq" */ 'pages/Faq/AffiliateFaq'))
 
 if (SENTRY_DSN) {
   Sentry.init({
@@ -81,12 +82,12 @@ export const LoadingWrapper = styled.div`
   }
 `
 
-function createRedirectExternal(url: string) {
-  return () => {
-    window.location.replace(url)
-    return null
-  }
-}
+// function createRedirectExternal(url: string) {
+//   return () => {
+//     window.location.replace(url)
+//     return null
+//   }
+// }
 
 const Loading = <LoadingWrapper>Loading...</LoadingWrapper>
 
@@ -102,16 +103,16 @@ export default function App() {
           <Switch>
             <Route exact strict path="/orderBook" component={OrderBook} />
 
-            <Route exact strict path="/swap" component={Swap} />
-            <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} />
-            <Route exact strict path="/limit" component={Limit} />
+            {/* <Route exact strict path="/swap" component={Swap} /> */}
+            {/* <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} /> */}
+            {/* <Route exact strict path="/limit" component={Limit} /> */}
 
-            <Route exact strict path="/send" component={RedirectPathToSwapOnly} />
-            <Route exact strict path="/claim" component={Claim} />
-            <Route exact strict path="/about" component={About} />
-            <Route exact strict path="/profile" component={Profile} />
+            {/* <Route exact strict path="/send" component={RedirectPathToSwapOnly} /> */}
+            {/* <Route exact strict path="/claim" component={Claim} /> */}
+            {/* <Route exact strict path="/about" component={About} /> */}
+            {/* <Route exact strict path="/profile" component={Profile} /> */}
 
-            <Route exact path="/faq" component={Faq} />
+            {/* <Route exact path="/faq" component={Faq} />
             <Route exact strict path="/faq/protocol" component={ProtocolFaq} />
             <Route exact strict path="/faq/token" component={TokenFaq} />
             <Route exact strict path="/faq/trading" component={TradingFaq} />
@@ -135,7 +136,7 @@ export default function App() {
               strict
               path="/twitter"
               component={createRedirectExternal('https://twitter.com/MEVprotection')}
-            />
+            /> */}
             <Route exact strict path="/" component={RedirectPathToSwapOnly} />
             <Route component={NotFound} />
           </Switch>

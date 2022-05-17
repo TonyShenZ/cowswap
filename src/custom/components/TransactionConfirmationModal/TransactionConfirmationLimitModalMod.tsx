@@ -17,9 +17,9 @@ import styled, { ThemeContext } from 'styled-components/macro'
 import Circle from 'assets/images/blue-loader.svg'
 // import MetaMaskLogo from 'assets/images/metamask.png'
 import { useActiveWeb3React } from 'hooks/web3'
-import { ExternalLink } from 'theme'
+// import { ExternalLink } from 'theme'
 import { CloseIcon, CustomLightSpinner } from 'theme'
-import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink'
+// import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink'
 import { TransactionSummary } from 'components/AccountDetails/TransactionSummary'
 import {
   ButtonPrimary,
@@ -338,13 +338,14 @@ function L2Content({
             {transaction ? <TransactionSummary info={transaction.info} /> : pendingText}
           </Text>
           {chainId && hash ? (
-            <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
-              <Text fontWeight={500} fontSize={14} color={theme.primary1}>
-                <Trans>View on Explorer</Trans>
-              </Text>
-            </ExternalLink>
+            <></>
           ) : (
-            <div style={{ height: '17px' }}></div>
+            // <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
+            //   <Text fontWeight={500} fontSize={14} color={theme.primary1}>
+            //     <Trans>View on Explorer</Trans>
+            //   </Text>
+            // </ExternalLink>
+            <div style={{ height: '17px' }} />
           )}
           <Text color={theme.text3} style={{ margin: '20px 0 0 0' }} fontSize={'14px'}>
             {!secondsToConfirm ? (

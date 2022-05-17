@@ -6,7 +6,7 @@ import * as OrderActions from './actions'
 
 import { OrderIDWithPopup, OrderTxTypes, PopupPayload, buildCancellationPopupSummary, setPopupData } from './helpers'
 import { registerOnWindow } from 'utils/misc'
-import { getCowSoundError, getCowSoundSend, getCowSoundSuccess } from 'utils/sound'
+// import { getCowSoundError, getCowSoundSend, getCowSoundSuccess } from 'utils/sound'
 
 // action syntactic sugar
 const isSingleOrderChangeAction = isAnyOf(
@@ -25,8 +25,8 @@ const isBatchOrderAction = isAnyOf(
 )
 const isBatchFulfillOrderAction = isAnyOf(OrderActions.fulfillOrdersBatch)
 // const isBatchCancelOrderAction = isAnyOf(OrderActions.cancelOrdersBatch) // disabled because doesn't work on `if`
-const isFulfillOrderAction = isAnyOf(OrderActions.addPendingOrder, OrderActions.fulfillOrdersBatch)
-const isExpireOrdersAction = isAnyOf(OrderActions.expireOrdersBatch, OrderActions.expireOrder)
+// const isFulfillOrderAction = isAnyOf(OrderActions.addPendingOrder, OrderActions.fulfillOrdersBatch)
+// const isExpireOrdersAction = isAnyOf(OrderActions.expireOrdersBatch, OrderActions.expireOrder)
 const isCancelOrderAction = isAnyOf(OrderActions.cancelOrder, OrderActions.cancelOrdersBatch)
 
 // on each Pending, Expired, Fulfilled order action
@@ -192,22 +192,22 @@ export const soundMiddleware: Middleware<Record<string, unknown>, AppState> = (s
     if (updatedElements.length === 0) return result
   }
 
-  let cowSound
-  if (isPendingOrderAction(action)) {
-    cowSound = getCowSoundSend()
-  } else if (isFulfillOrderAction(action)) {
-    cowSound = getCowSoundSuccess()
-  } else if (isExpireOrdersAction(action)) {
-    cowSound = getCowSoundError()
-  } else if (isCancelOrderAction(action)) {
-    cowSound = getCowSoundError()
-  }
+  // let cowSound
+  // if (isPendingOrderAction(action)) {
+  //   cowSound = getCowSoundSend()
+  // } else if (isFulfillOrderAction(action)) {
+  //   cowSound = getCowSoundSuccess()
+  // } else if (isExpireOrdersAction(action)) {
+  //   cowSound = getCowSoundError()
+  // } else if (isCancelOrderAction(action)) {
+  //   cowSound = getCowSoundError()
+  // }
 
-  if (cowSound) {
-    cowSound.play().catch((e) => {
-      console.error('🐮 Moooooo sound cannot be played', e)
-    })
-  }
+  // if (cowSound) {
+  //   cowSound.play().catch((e) => {
+  //     console.error('🐮 Moooooo sound cannot be played', e)
+  //   })
+  // }
 
   return result
 }

@@ -19,12 +19,12 @@ import HeaderMod, {
   // UNIWrapper,
 } from './HeaderMod'
 // import Menu from 'components/Menu'
-import { Moon, Sun } from 'react-feather'
+// import { Moon, Sun } from 'react-feather'
 import styled from 'styled-components/macro'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useETHBalances } from 'state/wallet/hooks'
 import { AMOUNT_PRECISION } from 'constants/index'
-import { useDarkModeManager } from 'state/user/hooks'
+// import { useDarkModeManager } from 'state/user/hooks'
 // import { darken } from 'polished'
 // import TwitterImage from 'assets/cow-swap/twitter.svg'
 import OrdersPanel from 'components/OrdersPanel'
@@ -234,7 +234,7 @@ export default function Header() {
 
   const userEthBalance = useETHBalances(account ? [account] : [])?.[account ?? '']
   const nativeToken = chainId && (CHAIN_CURRENCY_LABELS[chainId] || 'ETH')
-  const [darkMode, toggleDarkMode] = useDarkModeManager()
+  // const [darkMode, toggleDarkMode] = useDarkModeManager()
 
   // const toggleClaimModal = useToggleSelfClaimModal()
   // const availableClaim: boolean = useUserHasAvailableClaim(account)
@@ -305,9 +305,9 @@ export default function Header() {
                 <SVG src={TwitterImage} description="Follow CowSwap on Twitter!" />
               </ExternalLink>
             </TwitterLink> */}
-            <StyledMenuButton onClick={() => toggleDarkMode()}>
+            {/* <StyledMenuButton onClick={() => toggleDarkMode()}>
               {darkMode ? <Moon size={20} /> : <Sun size={20} />}
-            </StyledMenuButton>
+            </StyledMenuButton> */}
           </HeaderElementWrap>
           {/* <Menu isClaimPage={isClaimPage} darkMode={darkMode} toggleDarkMode={toggleDarkMode} /> */}
         </HeaderControls>

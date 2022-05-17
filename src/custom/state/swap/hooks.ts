@@ -253,8 +253,6 @@ export function useDerivedSwapInfo(): /* {
   bestTrade: V2Trade<Currency, Currency, TradeType> | V3Trade<Currency, Currency, TradeType> | undefined
   allowedSlippage: Percent
 } */ DerivedSwapInfo {
-  console.log('useDerivedSwapInfoxxxx')
-
   const { account, chainId } = useActiveWeb3React()
 
   // const [singleHopOnly] = useUserSingleHopOnly()

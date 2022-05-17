@@ -131,3 +131,25 @@ export function formatNumber(num: string): string {
   const newNum = Math.round(Number(num) * 100) / 100
   return newNum.toString()
 }
+
+export const formattedNum = (number: string) => {
+  const num = parseFloat(number)
+
+  if (num > 500000000) {
+    return num.toFixed(0)
+  }
+
+  if (num === 0) {
+    return 0
+  }
+
+  if (num < 0.0001 && num > 0) {
+    return '< 0.0001'
+  }
+
+  if (num > 1000) {
+    return Number(num.toFixed(0)).toLocaleString()
+  }
+
+  return Number(num.toFixed(4)).toString()
+}

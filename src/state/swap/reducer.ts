@@ -35,10 +35,12 @@ export default createReducer<SwapState>(initialState, (builder) =>
       (state, { payload: { typedValue, recipient, field, inputCurrencyId, outputCurrencyId } }) => {
         return {
           [Field.INPUT]: {
-            currencyId: inputCurrencyId ?? null,
+            // currencyId: inputCurrencyId ?? null,
+            currencyId: inputCurrencyId ?? '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd',
           },
           [Field.OUTPUT]: {
-            currencyId: outputCurrencyId ?? null,
+            // currencyId: outputCurrencyId ?? null,
+            currencyId: outputCurrencyId ?? '0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7',
           },
           limitPrice: '',
           independentField: field,

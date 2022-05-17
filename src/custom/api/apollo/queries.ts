@@ -72,8 +72,8 @@ export const USER_TRANSACTIONS = gql`
 `
 
 export const FILTERED_TRANSACTIONS = gql`
-  query ($allPairs: [String]!) {
-    swaps(first: 30, where: { pair_in: $allPairs }, orderBy: timestamp, orderDirection: desc) {
+  query ($allPairs: String!) {
+    swaps(first: 30, where: { pair: $allPairs }, orderBy: timestamp, orderDirection: desc) {
       transaction {
         id
         timestamp
@@ -95,6 +95,30 @@ export const FILTERED_TRANSACTIONS = gql`
       amount1Out
       amountUSD
       to
+    }
+  }
+`
+
+export const BLOCK_TIME = gql`
+  query ($number: Int!) {
+    blocks(first: 1, orderBy: number, orderDirection: desc, where: { number: $number }) {
+      number
+      timestamp
+    }
+  }
+`
+
+// pairs 最新价格
+// pairDayDatas 成交额
+export const HEADER_QUOTES = gql`
+  query ($allPairs: String!) {
+    pairDayDatas(first: 1, where: { pairAddress: $allPairs }) {
+      dailyVolumeToken0
+    }
+    pairs(first: 1, where: { id: $allPairs }) {
+      id
+      token0Price
+      reserveUSD
     }
   }
 `

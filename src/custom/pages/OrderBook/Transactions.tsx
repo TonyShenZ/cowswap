@@ -10,7 +10,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TradeMetaData } from '@src/custom/api/gnosisProtocol/api'
 import { useCurrency } from '@src/hooks/Tokens'
 import { formatSmart } from '@src/custom/utils/format'
-import { useTokenTransactions, useUserTransactions } from '@src/custom/api/apollo/hooks'
+import { useBlockToTime, useTokenTransactions } from '@src/custom/api/apollo/hooks'
+import { formattedNum } from '@src/custom/utils'
+import { useSwapState } from '@src/custom/state/swap/hooks'
 
 const TransactionsWrapper = styled.div`
   background: ${({ theme }) => theme.bg9};
@@ -40,13 +42,20 @@ const TableWrapper = styled.table`
     }
   }
 `
+const BuysellSpan = styled.span<{ colors: string }>`
+  color: ${({ colors }) => colors};
+`
 
 export default function Transactions() {
   const { account, chainId } = useActiveWeb3React()
 
+  const { INPUT } = useSwapState()
+
+  const inputCurrency = useCurrency(INPUT?.currencyId)
+
   // const transactions = useUserTransactions(account)
 
-  const recentTransactions = useTokenTransactions('0xf855e52ecc8b3b795ac289f85f6fd7a99883492b')
+  const recentTransactions = useTokenTransactions('0xe0e92035077c39594793e61802a350347c320cf2')
 
   const [trades, setTrades] = useState<TradeMetaData[]>([])
   // console.log('trades get', trades)
@@ -73,7 +82,7 @@ export default function Transactions() {
         <TabList justify={'flex-start'}>
           <Tab>
             <Text fontSize={14} padding={'12px 0 10px'}>
-              <Trans>recent transactions</Trans>
+              <Trans>Recent transactions</Trans>
             </Text>
           </Tab>
           <Tab>
@@ -84,34 +93,62 @@ export default function Transactions() {
         </TabList>
         <TabPanels style={{ padding: '0' }}>
           <TabPanel>
-            {recentTransactions && recentTransactions.length > 0 && (
-              <TableWrapper>
-                <thead>
-                  <tr>
-                    <th align="left">
-                      <Text fontSize={12}>Price ({recentTransactions[0].pair.token0.symbol})</Text>
-                    </th>
-                    <th align="right">
-                      <Text fontSize={12}>Amount ({recentTransactions[0].pair.token1.symbol})</Text>
-                    </th>
-                    <th>
-                      <Text fontSize={12}>Time</Text>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTransactions.map((item) => (
-                    <tr key={item.id}>
-                      <td align={'left'}>{formattedNum(item?.amount0Out)}</td>
-                      <td align={'right'}>{formattedNum(item?.amount1In)}</td>
+            <TableWrapper>
+              <thead>
+                <tr>
+                  {/* <th>
+                    <Text fontSize={12}>total</Text>
+                  </th> */}
+                  <th>
+                    <Text fontSize={12}>Price</Text>
+                  </th>
+                  <th align="right">
+                    <Text fontSize={12}>Amount </Text>
+                  </th>
+                  <th>
+                    <Text fontSize={12}>Time</Text>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTransactions?.length > 0 &&
+                  recentTransactions.map((item, index) => (
+                    <tr key={item.hash + index}>
+                      <td>
+                        <BuysellSpan colors={inputCurrency?.symbol == item.token1Symbol ? '#E74358' : '#1ED392'}>
+                          {inputCurrency?.symbol == item.token1Symbol
+                            ? formattedNum(String(item.token0Amount / item.token1Amount))
+                            : formattedNum(String(item.token1Amount / item.token0Amount))}
+                        </BuysellSpan>
+                      </td>
+                      {/* <td align={'right'}>
+                        <>
+                          <BuysellSpan colors={inputCurrency?.symbol == item.token1Symbol ? '#E74358' : '#1ED392'}>
+                            {formattedNum(item.token1Amount.toString()) + ' '} {''}
+                          </BuysellSpan>
+                          {item.token1Symbol}
+                        </>
+                      </td> */}
+                      <td align={'right'}>
+                        {inputCurrency?.symbol == item.token1Symbol ? (
+                          <>
+                            {formattedNum(item.token1Amount.toString()) + ' '}
+                            {item.token1Symbol}
+                          </>
+                        ) : (
+                          <>
+                            {formattedNum(item.token0Amount.toString()) + ' '}
+                            {item.token0Symbol}
+                          </>
+                        )}
+                      </td>
                       <td align={'center'} width={80}>
-                        {dayjs(item.transaction.timestamp).format('HH:mm:ss')}
+                        {dayjs.unix(item.timestamp as unknown as number).format('HH:mm:ss')}
                       </td>
                     </tr>
                   ))}
-                </tbody>
-              </TableWrapper>
-            )}
+              </tbody>
+            </TableWrapper>
           </TabPanel>
 
           <TabPanel>
@@ -146,6 +183,8 @@ function Activity({ activity }: { activity: TradeMetaData }) {
   const sellToken = useCurrency(activity.sellToken)
   const buyToken = useCurrency(activity.buyToken)
 
+  const blockTime = useBlockToTime(activity.blockNumber)
+
   const sellAmt = useMemo(() => {
     if (!sellToken) return
     return CurrencyAmount.fromRawAmount(sellToken, activity.sellAmount)
@@ -166,37 +205,15 @@ function Activity({ activity }: { activity: TradeMetaData }) {
   orderSummary = {
     form: `${formatSmart(sellAmt)} ${sellAmt?.currency.symbol}`,
     to: `${formatSmart(buyAmt)} ${buyAmt?.currency.symbol}`,
-    time: activity.blockNumber.toString(),
+    time: blockTime ? dayjs.unix(blockTime as unknown as number).format('HH:mm:ss') : undefined,
   }
   const { form, to, time } = orderSummary
 
   return (
     <tr>
-      <td align={'left'}>{form}</td>
-      <td align={'left'}>{to}</td>
+      <td align={'right'}>{form}</td>
+      <td align={'right'}>{to}</td>
       <td align={'left'}>{time}</td>
     </tr>
   )
-}
-
-export const formattedNum = (number: string, usd = false, acceptNegatives = false) => {
-  const num = parseFloat(number)
-
-  if (num > 500000000) {
-    return num.toFixed(0)
-  }
-
-  if (num === 0) {
-    return 0
-  }
-
-  if (num < 0.0001 && num > 0) {
-    return '< 0.0001'
-  }
-
-  if (num > 1000) {
-    return Number(num.toFixed(0)).toLocaleString()
-  }
-
-  return Number(num.toFixed(4)).toString()
 }

@@ -15,3 +15,10 @@ export const cowClient = new ApolloClient({
   }),
   cache: new InMemoryCache(),
 })
+
+export const blockClient = new ApolloClient({
+  link: new HttpLink({
+    uri: 'http://18.167.42.106:8080/subgraphs/name/blocklytics/ethereum-blocks',
+  }),
+  cache: new InMemoryCache(),
+})

@@ -1,4 +1,5 @@
 import styled from 'styled-components/macro'
+import dayjs from 'dayjs'
 import { Text } from 'rebass'
 import { CurrencyAmount } from '@uniswap/sdk-core'
 import Tabs, { Tab, TabList, TabPanels as TabComponents } from '@src/custom/components/Tabs'
@@ -100,12 +101,12 @@ export default function Entrusts() {
         <TabList justify={'start'}>
           <Tab>
             <Text fontSize={14} padding={'12px 0 10px'}>
-              <Trans>current mandate</Trans>
+              <Trans>Open Order</Trans>
             </Text>
           </Tab>
           <Tab>
             <Text fontSize={14} padding={'12px 0 10px'}>
-              <Trans>historical commission</Trans>
+              <Trans>Order history</Trans>
             </Text>
           </Tab>
         </TabList>
@@ -120,16 +121,16 @@ export default function Entrusts() {
                   <Text fontSize={12}>To</Text>
                 </th>
                 <th>
-                  <Text fontSize={12}>Commission time</Text>
+                  <Text fontSize={12}>Time</Text>
                 </th>
                 <th>
-                  <Text fontSize={12}>Commission price</Text>
+                  <Text fontSize={12}>Price</Text>
                 </th>
                 <th>
-                  <Text fontSize={12}>Trading direction</Text>
+                  <Text fontSize={12}>Side</Text>
                 </th>
                 <th>
-                  <Text fontSize={12}>Trading status</Text>
+                  <Text fontSize={12}>Status</Text>
                 </th>
               </tr>
             </thead>
@@ -267,7 +268,8 @@ function ActivityDetails(props: {
       to: `${formatSmart(outputAmount)} ${outputAmount.currency.symbol}`,
       limitPrice: limitPrice && getPriceFormat(limitPrice),
       executionPrice: executionPrice && getPriceFormat(executionPrice),
-      validTo: validTo ? new Date((validTo as number) * 1000).toLocaleString(undefined, DateFormatOptions) : undefined,
+      validTo: validTo ? dayjs.unix(validTo as number).format('YYYY-MM-DD HH:mm') : undefined,
+      // validTo? new Date((validTo as number) * 1000).toLocaleString(undefined, DateFormatOptions) : undefined
       fulfillmentTime: fulfillmentTime
         ? new Date(fulfillmentTime).toLocaleString(undefined, DateFormatOptions)
         : undefined,

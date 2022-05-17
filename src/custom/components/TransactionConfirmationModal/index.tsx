@@ -10,15 +10,15 @@ import {
 } from 'theme'
 // eslint-disable-next-line no-restricted-imports
 import { t, Trans } from '@lingui/macro'
-import { ExternalLink } from 'theme'
+// import { ExternalLink } from 'theme'
 import { RowBetween, RowFixed } from 'components/Row'
 import MetaMaskLogo from 'assets/images/metamask.png'
-import { getEtherscanLink, getExplorerLabel } from 'utils'
+// import { getEtherscanLink, getExplorerLabel } from 'utils'
 import { Text } from 'rebass'
 import { ArrowUpCircle, CheckCircle, UserCheck } from 'react-feather'
 import useAddTokenToMetamask from 'hooks/useAddTokenToMetamask'
-import GameIcon from 'assets/cow-swap/game.gif'
-import { Link } from 'react-router-dom'
+// import GameIcon from 'assets/cow-swap/game.gif'
+// import { Link } from 'react-router-dom'
 import { ConfirmationModalContent as ConfirmationModalContentMod } from './TransactionConfirmationModalMod'
 import { ColumnCenter } from 'components/Column'
 // import { lighten } from 'polished'
@@ -103,7 +103,7 @@ export const GPModalHeader = styled(RowBetween)`
   `}
 `
 
-const InternalLink = styled(Link)``
+// const InternalLink = styled(Link)``
 
 const StyledIcon = styled.img`
   height: auto;
@@ -112,9 +112,9 @@ const StyledIcon = styled.img`
   margin: 0 10px 0 0;
 `
 
-const ExternalLinkCustom = styled(ExternalLink)`
-  margin: 12px auto 48px;
-`
+// const ExternalLinkCustom = styled(ExternalLink)`
+//   margin: 12px auto 48px;
+// `
 
 const ButtonGroup = styled.div`
   display: grid;
@@ -499,8 +499,8 @@ export function ConfirmationPendingContent({
 
 export function TransactionSubmittedContent({
   onDismiss,
-  chainId,
-  hash,
+  // chainId,
+  // hash,
   currencyToAdd,
 }: {
   onDismiss: () => void
@@ -525,13 +525,13 @@ export function TransactionSubmittedContent({
           Transaction Submitted
         </Text>
 
-        {chainId && hash && (
+        {/* {chainId && hash && (
           <ExternalLinkCustom href={getEtherscanLink(chainId, hash, 'transaction')}>
             <Text fontWeight={500} fontSize={14} color={theme.primary1}>
               {getExplorerLabel(chainId, hash, 'transaction')} ↗
             </Text>
           </ExternalLinkCustom>
-        )}
+        )} */}
 
         <ButtonGroup>
           {currencyToAdd && library?.provider?.isMetaMask && (
@@ -549,12 +549,12 @@ export function TransactionSubmittedContent({
             </ButtonCustom>
           )}
 
-          <ButtonCustom>
+          {/* <ButtonCustom>
             <InternalLink to="/play/cow-runner" onClick={onDismiss}>
               <StyledIcon src={GameIcon} alt="Play CowGame" />
               Play the Cow Runner Game!
             </InternalLink>
-          </ButtonCustom>
+          </ButtonCustom> */}
         </ButtonGroup>
 
         <CloseLink onClick={onDismiss}>Close</CloseLink>
