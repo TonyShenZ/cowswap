@@ -105,8 +105,8 @@ export function getBytes32TokenContract(
   return _getContract(tokenAddress, ERC20_BYTES32_ABI, withSignerIfPossible, library, account, chainId)
 }
 
-export function useVaultContract() {
-  return useContract<Vault>('0xdfc169de2454CB5b925034433742956c416EE6C1', VAULT_ABI, true) as Vault
+export function useVaultContract(tokenAddress?: string, withSignerIfPossible?: boolean) {
+  return useContract<Vault>(tokenAddress, VAULT_ABI, withSignerIfPossible) as Vault
 }
 
 export function useVaultConfigContract() {

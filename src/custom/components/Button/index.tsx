@@ -46,7 +46,7 @@ export const ButtonPrimary = styled(ButtonPrimaryMod)`
   &:active {
     border: ${({ theme }) => theme.buttonPrimary.border};
     box-shadow: none;
-    transform: translateY(3px) scale(0.99);
+    /* transform: translateY(3px) scale(0.99); */
     ${({ theme }) => theme.buttonPrimary.background}
   }
   &:disabled {

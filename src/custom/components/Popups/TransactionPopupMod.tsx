@@ -4,11 +4,13 @@ import styled, { ThemeContext } from 'styled-components/macro'
 
 // import { useActiveWeb3React } from 'hooks/web3'
 // import { useTransaction } from 'state/transactions/hooks'
-import { TYPE } from 'theme'
+import { ExternalLink, TYPE } from 'theme'
 // import { ExternalLink } from 'theme'
 // import { getEtherscanLink } from 'utils'
 import { AutoColumn } from 'components/Column'
 import { AutoRow } from 'components/Row'
+import { useActiveWeb3React } from '@src/hooks/web3'
+import { ExplorerDataType, getExplorerLink } from '@src/utils/getExplorerLink'
 // import { ExplorerLink } from 'components/ExplorerLink'
 
 const RowNoFlex = styled(AutoRow)`
@@ -24,7 +26,7 @@ export default function TransactionPopup({
   success?: boolean
   summary?: string | JSX.Element
 }) {
-  // const { chainId } = useActiveWeb3React()
+  const { chainId } = useActiveWeb3React()
 
   const theme = useContext(ThemeContext)
 
@@ -41,14 +43,12 @@ export default function TransactionPopup({
         ) : (
           summary
         )}
-        {/*
+
         {chainId && (
-          // <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
-          View on Explorer
-        </ExternalLink> //
-        <ExplorerLink id={hash} />
+          <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
+            View on Explorer
+          </ExternalLink>
         )}
-         */}
       </AutoColumn>
     </RowNoFlex>
   )

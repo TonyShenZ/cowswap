@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from 'react'
 import { Text } from 'rebass'
 import Row, { AutoRow, RowBetween } from '@src/components/Row'
 import { RouteComponentProps } from 'react-router-dom'
-import { LendBackground, LendCard } from '.'
+import { format, LendBackground, LendCard } from '.'
 import { parseEther } from '@ethersproject/units'
 import { ApprovalState, useApproveCallback } from '@src/hooks/useApproveCallback'
 
@@ -19,11 +19,10 @@ import styled, { ThemeContext } from 'styled-components/macro'
 import { InputPanel } from '@src/custom/components/CurrencyInputPanel/CurrencyInputPanelMod'
 import Input from '@src/components/NumericalInput'
 import { ButtonEmpty, ButtonError, ButtonGreen, ButtonLight } from '@src/custom/components/Button'
-import { useWalletModalToggle } from '@src/custom/state/application/hooks'
-import { TransactionType } from '@src/state/transactions/actions'
+import { useAddPopup, useWalletModalToggle } from '@src/custom/state/application/hooks'
 import { useTotalSupply } from '@src/hooks/useTotalSupply'
 import CurrencyLogo from '@src/custom/components/CurrencyLogo'
-import { useTransactionAdder } from '@src/state/transactions/hooks'
+import { useTransactionAdder } from '@src/custom/state/enhancedTransactions/hooks'
 
 const InputPanelWrapper = styled(InputPanel)`
   padding: 10px;
@@ -41,27 +40,30 @@ const ButtonLink = styled(ButtonEmpty)`
 
 export default function LendPage({
   match: {
-    params: { address },
+    params: { payAddress, getAddress },
   },
-}: RouteComponentProps<{ address: string }>) {
+}: RouteComponentProps<{ payAddress: string; getAddress: string }>) {
   const { account } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
 
-  const vaultContract = useVaultContract()
+  const payTokenCurrency = useCurrency(payAddress)
 
-  const tokenCurrency = useCurrency(address)
-  const totalSupplyOfStakingToken = useTotalSupply(tokenCurrency?.wrapped)
+  const getTokenCurrency = useCurrency(getAddress)
 
-  const tokenBalance = useTokenBalance(account ?? undefined, tokenCurrency?.wrapped ?? undefined)
+  const getVaultContract = useVaultContract(getAddress)
+
+  const totalSupplyOfStakingToken = useTotalSupply(payTokenCurrency?.wrapped)
+
+  const tokenBalance = useTokenBalance(account ?? undefined, payTokenCurrency?.wrapped ?? undefined)
   const tokenAmount = useMemo(() => {
-    if (!tokenCurrency || !totalSupplyOfStakingToken) return
-    return CurrencyAmount.fromRawAmount(tokenCurrency, totalSupplyOfStakingToken.toExact())
-  }, [tokenCurrency, totalSupplyOfStakingToken])
+    if (!payTokenCurrency || !totalSupplyOfStakingToken) return
+    return CurrencyAmount.fromRawAmount(payTokenCurrency, totalSupplyOfStakingToken.toExact())
+  }, [payTokenCurrency, totalSupplyOfStakingToken])
 
-  const [approval, approveCallback] = useApproveCallback(tokenAmount, vaultContract?.address)
+  const [approval, approveCallback] = useApproveCallback(tokenAmount, getVaultContract?.address)
 
-  const addTransaction = useTransactionAdder()
+  const addPopup = useAddPopup()
 
   const [amountValue, setAmountValue] = useState('')
 
@@ -73,7 +75,7 @@ export default function LendPage({
 
     try {
       setApproving(true)
-      // const summary = `Approve ${tokenCurrency?.symbol || 'token'} for Lend`
+      // const summary = `Approve ${payTokenCurrency?.symbol || 'token'} for Lend`
       await approveCallback()
     } catch (error) {
       console.error('[InvestOption]: Issue approving.', error)
@@ -87,24 +89,38 @@ export default function LendPage({
     try {
       setConfimIng(true)
       const amountToken = parseEther(amountValue)
-      vaultContract
+      getVaultContract
         .deposit(amountToken)
-        .then((response) => {
-          addTransaction(response, {
-            type: TransactionType.DEPOSITING,
-            tokenAddress: account,
-          })
-          // debugger
-          // addTransaction({
-          //   hash: response.hash,
-          //   summary: `Deposit ${amountValue} ${tokenCurrency?.symbol}`,
-          // })
+        .then(async (response) => {
+          const { wait } = response
+          await wait()
+            .then((res) => {
+              addPopup(
+                {
+                  txn: {
+                    hash: res.transactionHash,
+                    success: res.status ? true : false,
+                    summary: `Deposit ${amountValue} ${payTokenCurrency?.symbol} to ${amountValue} ${getTokenCurrency?.symbol}`,
+                  },
+                },
+                res.transactionHash
+              )
+            })
+            .finally(() => {
+              setConfimIng(false)
+              setAmountValue('')
+            })
         })
-        .finally(() => setConfimIng(false))
+        .catch(() => {
+          setConfimIng(false)
+          setAmountValue('')
+        })
     } catch (error) {
       console.error('[InvestOption]: Issue deposit.', error)
+      setConfimIng(false)
+      setAmountValue('')
     }
-  }, [vaultContract, amountValue, account, tokenCurrency, setConfimIng, addTransaction])
+  }, [getVaultContract, amountValue, account, payTokenCurrency, setConfimIng, addPopup])
 
   const onUserAmountInput = useCallback(
     (num: string) => {
@@ -119,14 +135,14 @@ export default function LendPage({
       <AutoColumn gap={'26px'}>
         <Row>
           <Text fontSize={24} color={theme.text1} fontWeight={700} lineHeight={'28px'}>
-            Depositing BNB
+            Depositing {payTokenCurrency?.wrapped?.symbol}
           </Text>
-          <CurrencyLogo style={{ marginLeft: '0.5rem' }} currency={tokenCurrency} size={'32px'} />
+          <CurrencyLogo style={{ marginLeft: '0.5rem' }} currency={payTokenCurrency} size={'32px'} />
         </Row>
 
         <AutoColumn gap={'12px'}>
           <TYPE.body color={theme.text5} fontWeight={700} fontSize={14}>
-            Available Balance: {tokenBalance?.toSignificant(3)} {tokenCurrency?.wrapped?.symbol}
+            Available Balance: {tokenBalance?.toSignificant(6)} {payTokenCurrency?.wrapped?.symbol}
           </TYPE.body>
 
           <InputPanelWrapper hideInput={false}>
@@ -147,7 +163,7 @@ export default function LendPage({
               You will receive:
             </TYPE.body>
             <TYPE.body color={theme.primary6} fontWeight={700} fontSize={14}>
-              ~1230 hBNB
+              {amountValue ? `~ ${format(amountValue)} ${getTokenCurrency?.wrapped?.symbol}` : '-'}
             </TYPE.body>
           </AutoRow>
         </AutoColumn>
@@ -174,10 +190,10 @@ export default function LendPage({
             <ButtonGreen onClick={handleApprove} disabled={approval === ApprovalState.PENDING || approving}>
               {approval === ApprovalState.PENDING || approving ? (
                 <Dots>
-                  <Trans>Approving {tokenCurrency?.wrapped?.symbol}</Trans>
+                  <Trans>Approving {payTokenCurrency?.wrapped?.symbol}</Trans>
                 </Dots>
               ) : (
-                <Trans>Approve {tokenCurrency?.wrapped?.symbol}</Trans>
+                <Trans>Approve {payTokenCurrency?.wrapped?.symbol}</Trans>
               )}
             </ButtonGreen>
           ) : (

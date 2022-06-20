@@ -115,8 +115,8 @@ export default function App() {
             <Route exact strict path="/add/v2/:currencyIdA?/:currencyIdB?" component={RedirectDuplicateTokenIdsV2} />
 
             <Route exact strict path="/lend" component={Lend} />
-            <Route exact strict path="/lend/out/:address" component={LendDepPage} />
-            <Route exact strict path="/lend/in/:address" component={LendWitPage} />
+            <Route exact strict path="/lend/dep/:payAddress/:getAddress" component={LendDepPage} />
+            <Route exact strict path="/lend/wit/:getAddress/:payAddress" component={LendWitPage} />
 
             <Route exact strict path="/swap" component={Swap} />
             {/* <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} /> */}

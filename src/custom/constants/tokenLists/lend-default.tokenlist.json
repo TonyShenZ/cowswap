@@ -8,12 +8,22 @@
   },
   "tokens": [
     {
-      "name": "USDC",
-      "symbol": "USDC Lend",
-      "address": "0xAC8B36d26f704c43cA3AAC6682083786eB83cf38",
-      "chainId": 97,
-      "decimals": 18,
-      "logoURI": "https://www.centre.io/hubfs/usdc-icon-86074d9d49.png"
+      "in": {
+        "name": "USDC",
+        "symbol": "USDC",
+        "address": "0xAC8B36d26f704c43cA3AAC6682083786eB83cf38",
+        "chainId": 97,
+        "decimals": 18,
+        "logoURI": "https://www.centre.io/hubfs/usdc-icon-86074d9d49.png"
+      },
+      "out": {
+        "name": "ibUSDC",
+        "symbol": "ibUSDC",
+        "address": "0xdfc169de2454CB5b925034433742956c416EE6C1",
+        "chainId": 97,
+        "decimals": 18,
+        "logoURI": "https://www.centre.io/hubfs/usdc-icon-86074d9d49.png"
+      }
     }
   ]
 }

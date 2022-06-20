@@ -252,9 +252,9 @@ export function themeVariables(darkMode: boolean, colorsTheme: Colors) {
         color: ${colorsTheme.black};
       `,
       fontWeight: '800',
-      border: `4px solid ${colorsTheme.black}`,
+      border: `0px solid ${colorsTheme.black}`,
       borderRadius: '16px',
-      boxShadow: `4px 4px 0px ${colorsTheme.black}`,
+      boxShadow: `0px 4px 0px ${colorsTheme.black}`,
     },
     buttonOutlined: {
       background: css`

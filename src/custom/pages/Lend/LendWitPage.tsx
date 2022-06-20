@@ -3,12 +3,11 @@ import { Text } from 'rebass'
 import { Trans } from '@lingui/macro'
 import Row, { AutoRow, RowBetween } from '@src/components/Row'
 import { RouteComponentProps } from 'react-router-dom'
-import { LendBackground, LendCard } from '.'
+import { format, LendBackground, LendCard } from '.'
 import { parseEther } from '@ethersproject/units'
 import { useCurrency } from '@src/hooks/Tokens'
 import { useTokenBalance } from '@src/state/wallet/hooks'
 import { useActiveWeb3React } from '@src/hooks/web3'
-import { CurrencyAmount } from '@uniswap/sdk-core'
 import { useVaultContract } from '@src/custom/hooks/useContract'
 import { AutoColumn } from '@src/components/Column'
 import { TYPE } from '@src/custom/theme/cowSwapTheme'
@@ -17,12 +16,9 @@ import { InputPanel } from '@src/custom/components/CurrencyInputPanel/CurrencyIn
 import Input from '@src/components/NumericalInput'
 import { ButtonEmpty, ButtonError, ButtonLight } from '@src/custom/components/Button'
 
-import { useWalletModalToggle } from '@src/custom/state/application/hooks'
-import { TransactionType } from '@src/state/transactions/actions'
-import { useTotalSupply } from '@src/hooks/useTotalSupply'
+import { useAddPopup, useWalletModalToggle } from '@src/custom/state/application/hooks'
 import CurrencyLogo from '@src/custom/components/CurrencyLogo'
 import { Dots } from '@src/pages/Pool/styleds'
-import { useTransactionAdder } from '@src/state/transactions/hooks'
 
 const InputPanelWrapper = styled(InputPanel)`
   padding: 10px;
@@ -40,28 +36,23 @@ const ButtonLink = styled(ButtonEmpty)`
 
 export default function LendPage({
   match: {
-    params: { address },
+    params: { getAddress, payAddress },
   },
-}: RouteComponentProps<{ address: string }>) {
+}: RouteComponentProps<{ getAddress: string; payAddress: string }>) {
   const { account } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
 
-  const vaultContract = useVaultContract()
+  const getVaultContract = useVaultContract(getAddress)
 
-  const tokenCurrency = useCurrency(address)
-  const totalSupplyOfStakingToken = useTotalSupply(tokenCurrency?.wrapped)
+  const addPopup = useAddPopup()
 
-  const tokenBalance = useTokenBalance(account ?? undefined, tokenCurrency?.wrapped ?? undefined)
+  const getTokenCurrency = useCurrency(getAddress)
+  const payTokenCurrency = useCurrency(payAddress)
 
-  const tokenAmount = useMemo(() => {
-    if (!tokenCurrency || !totalSupplyOfStakingToken) return
-    return CurrencyAmount.fromRawAmount(tokenCurrency, totalSupplyOfStakingToken.toExact())
-  }, [tokenCurrency, totalSupplyOfStakingToken])
+  const getTokenBalance = useTokenBalance(account ?? undefined, getTokenCurrency?.wrapped ?? undefined)
 
-  const addTransaction = useTransactionAdder()
-
-  const [amountValue, setAmountValue] = useState('0')
+  const [amountValue, setAmountValue] = useState('')
 
   const [confimIng, setConfimIng] = useState(false)
 
@@ -70,22 +61,37 @@ export default function LendPage({
     try {
       setConfimIng(true)
       const amountToken = parseEther(amountValue)
-      vaultContract.withdraw(amountToken).then((response) => {
-        // addTransaction({
-        //   hash: response.hash,
-        //   summary: 'Withdraw ',
-        // })
-        addTransaction(response, {
-          type: TransactionType.DEPOSITING,
-          tokenAddress: 'xxxxxxx',
+      getVaultContract
+        .withdraw(amountToken)
+        .then(async (response) => {
+          const { wait } = response
+          await wait()
+            .then((res) => {
+              addPopup(
+                {
+                  txn: {
+                    hash: res.transactionHash,
+                    success: res.status ? true : false,
+                    summary: `Withdraw ${amountValue} ${payTokenCurrency?.symbol} to ${amountValue} ${getTokenCurrency?.symbol}`,
+                  },
+                },
+                res.transactionHash
+              )
+            })
+            .finally(() => {
+              setConfimIng(false)
+              setAmountValue('')
+            })
         })
-      })
+        .catch((err) => {
+          console.log(err)
+          setConfimIng(false)
+          setAmountValue('')
+        })
     } catch (error) {
       console.error('[InvestOption]: Issue withdraw.', error)
-    } finally {
-      setConfimIng(false)
     }
-  }, [vaultContract, amountValue])
+  }, [getVaultContract, amountValue])
 
   const onUserAmountInput = useCallback(
     (num: string) => {
@@ -100,14 +106,14 @@ export default function LendPage({
       <AutoColumn gap={'26px'}>
         <Row>
           <Text fontSize={24} color={theme.text1} fontWeight={700} lineHeight={'28px'}>
-            Depositing BNB
+            Withdrawing BNB
           </Text>
-          <CurrencyLogo style={{ marginLeft: '0.5rem' }} currency={tokenCurrency} size={'32px'} />
+          <CurrencyLogo style={{ marginLeft: '0.5rem' }} currency={getTokenCurrency} size={'32px'} />
         </Row>
 
         <AutoColumn gap={'12px'}>
           <TYPE.body color={theme.text5} fontWeight={700} fontSize={14}>
-            Available Balance: {tokenBalance?.toSignificant(3)} {tokenCurrency?.wrapped?.symbol}
+            Available Balance: {getTokenBalance?.toSignificant(6)} {getTokenCurrency?.wrapped?.symbol}
           </TYPE.body>
 
           <InputPanelWrapper hideInput={false}>
@@ -115,7 +121,7 @@ export default function LendPage({
               <InputWrapper height={48} value={amountValue} onUserInput={onUserAmountInput} />
               <ButtonLink
                 onClick={() => {
-                  onUserAmountInput(tokenBalance?.toExact() ?? '0')
+                  onUserAmountInput(getTokenBalance?.toExact() ?? '0')
                 }}
               >
                 MAX
@@ -128,7 +134,7 @@ export default function LendPage({
               You will receive:
             </TYPE.body>
             <TYPE.body color={theme.primary6} fontWeight={700} fontSize={14}>
-              ~1230 hBNB
+              {amountValue ? `~ ${format(amountValue)} ${payTokenCurrency?.wrapped?.symbol}` : '-'}
             </TYPE.body>
           </AutoRow>
         </AutoColumn>
@@ -152,7 +158,11 @@ export default function LendPage({
           {!account ? (
             <ButtonLight onClick={toggleWalletModal}>Connect Wallet</ButtonLight>
           ) : (
-            <ButtonError onClick={handleWithdraw} width="auto" disabled={confimIng}>
+            <ButtonError
+              onClick={handleWithdraw}
+              width="auto"
+              disabled={confimIng || !(amountValue && Number(amountValue) > 0)}
+            >
               <Text fontWeight={500}>
                 {confimIng ? (
                   <Dots>

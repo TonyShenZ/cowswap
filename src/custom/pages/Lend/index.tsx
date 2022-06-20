@@ -18,6 +18,15 @@ import Lends from 'constants/tokenLists/lend-default.tokenlist.json'
 
 import { Link } from 'react-router-dom'
 
+export interface TokenMeta {
+  name: string
+  symbol: string
+  address: string
+  chainId: number
+  decimals: number
+  logoURI: string
+}
+
 export const LendCard = styled(Card)`
   position: relative;
   margin-top: 40px;
@@ -106,9 +115,9 @@ export default function Lend() {
           <LendHederWrap>Utilization</LendHederWrap>
           <LendHederWrap>Your Balance</LendHederWrap>
         </LendHeader>
-        {Lends.tokens.map((item) => (
+        {Lends.tokens.map((item, index) => (
           <>
-            <LendItem key={item.address} tokenAddress={item.address} name={item.name} logoURI={item.logoURI} />
+            <LendItem key={index} pay={item.in} get={item.out} />
             <Line opacity={0.15} />
           </>
         ))}
@@ -117,25 +126,23 @@ export default function Lend() {
   )
 }
 
-function LendItem({ tokenAddress, logoURI, name }: { tokenAddress: string; logoURI: string; name: string }) {
+function LendItem({ pay, get }: { pay: TokenMeta; get: TokenMeta }) {
   const { account } = useActiveWeb3React()
-  const vaultContract = useVaultContract()
 
   const vaultConfigContract = useVaultConfigContract()
 
-  const tokenContract = useTokenContract(tokenAddress)
+  const payTokenContract = useTokenContract(pay.address)
+
+  const getContract = useVaultContract(get.address)
 
   // Erc20 balance
-  const erc20Balance = useSingleCallResult(tokenContract, 'balanceOf', [account ?? undefined])?.result?.[0]
-
-  // vault balance
-  const vaultBalance = useSingleCallResult(vaultContract, 'balanceOf', [account ?? undefined])?.result?.[0]
+  const erc20Balance = useSingleCallResult(payTokenContract, 'balanceOf', [account ?? undefined])?.result?.[0]
 
   // total borrowed
-  const vaultDebtVal = useSingleCallResult(vaultContract, 'vaultDebtVal')?.result?.[0]
+  const vaultDebtVal = useSingleCallResult(getContract, 'vaultDebtVal')?.result?.[0]
 
   // total supply
-  const totalToken = useSingleCallResult(vaultContract, 'totalToken')?.result?.[0]
+  const totalToken = useSingleCallResult(getContract, 'totalToken')?.result?.[0]
 
   // ratePerSec
   const ratePerSec = useSingleCallResult(vaultConfigContract, 'getInterestRate', [vaultDebtVal, erc20Balance])
@@ -156,22 +163,22 @@ function LendItem({ tokenAddress, logoURI, name }: { tokenAddress: string; logoU
     <LendItemWrapper>
       <RowFixed>
         <IconWrapper size={32}>
-          <img src={logoURI} alt={name} />
+          <img src={pay.logoURI} alt={pay.symbol} />
         </IconWrapper>
-        {name}
+        {pay.symbol}
       </RowFixed>
       <RowFixed>
         <ApyText fontSize={20}>{apr ? `${apr.toString()} %` : '-'}</ApyText>
       </RowFixed>
-      <RowFixed>{totalToken ? `${format(formatEther(totalToken))} ${name}` : '-'}</RowFixed>
-      <RowFixed>{vaultDebtVal ? `${format(formatEther(vaultDebtVal))} ${name}` : '-'}</RowFixed>
+      <RowFixed>{totalToken ? `${format(formatEther(totalToken))} ${pay.symbol}` : '-'}</RowFixed>
+      <RowFixed>{vaultDebtVal ? `${format(formatEther(vaultDebtVal))} ${pay.symbol}` : '-'}</RowFixed>
       <RowFixed>{utilization ? `${format(utilization.toString())} %` : '-'}</RowFixed>
-      <RowFixed>{erc20Balance ? `${format(formatEther(erc20Balance))} ${name}` : '-'}</RowFixed>
+      <RowFixed>{erc20Balance ? `${format(formatEther(erc20Balance))} ${pay.symbol}` : '-'}</RowFixed>
       <AutoColumn gap="5px" justify={'center'}>
-        <LendButtonOutlined as={Link} to={`/lend/out/${tokenAddress}`}>
+        <LendButtonOutlined as={Link} to={`/lend/dep/${pay.address}/${get.address}`}>
           Deposit
         </LendButtonOutlined>
-        <LendButtonOutlined as={Link} to={`/lend/in/${tokenAddress}`}>
+        <LendButtonOutlined as={Link} to={`/lend/wit/${get.address}/${pay.address}`}>
           Withdraw
         </LendButtonOutlined>
       </AutoColumn>
@@ -179,7 +186,7 @@ function LendItem({ tokenAddress, logoURI, name }: { tokenAddress: string; logoU
   )
 }
 
-function format(num: string) {
+export function format(num: string) {
   const newNum = parseFloat(num).toFixed(2)
   if (newNum) {
     const nums = newNum.split('.')
