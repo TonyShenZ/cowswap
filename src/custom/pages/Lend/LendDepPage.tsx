@@ -22,7 +22,6 @@ import { ButtonEmpty, ButtonError, ButtonGreen, ButtonLight } from '@src/custom/
 import { useAddPopup, useWalletModalToggle } from '@src/custom/state/application/hooks'
 import { useTotalSupply } from '@src/hooks/useTotalSupply'
 import CurrencyLogo from '@src/custom/components/CurrencyLogo'
-import { useTransactionAdder } from '@src/custom/state/enhancedTransactions/hooks'
 
 const InputPanelWrapper = styled(InputPanel)`
   padding: 10px;
@@ -120,7 +119,7 @@ export default function LendPage({
       setConfimIng(false)
       setAmountValue('')
     }
-  }, [getVaultContract, amountValue, account, payTokenCurrency, setConfimIng, addPopup])
+  }, [getVaultContract, amountValue, account, payTokenCurrency, getTokenCurrency, setConfimIng, addPopup])
 
   const onUserAmountInput = useCallback(
     (num: string) => {

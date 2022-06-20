@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from 'react'
+import { useCallback, useContext, useState } from 'react'
 import { Text } from 'rebass'
 import { Trans } from '@lingui/macro'
 import Row, { AutoRow, RowBetween } from '@src/components/Row'
@@ -57,7 +57,7 @@ export default function LendPage({
   const [confimIng, setConfimIng] = useState(false)
 
   const handleWithdraw = useCallback(() => {
-    if (!amountValue || !account) return
+    if (!amountValue) return
     try {
       setConfimIng(true)
       const amountToken = parseEther(amountValue)
@@ -91,7 +91,7 @@ export default function LendPage({
     } catch (error) {
       console.error('[InvestOption]: Issue withdraw.', error)
     }
-  }, [getVaultContract, amountValue])
+  }, [getVaultContract, amountValue, getTokenCurrency, payTokenCurrency, addPopup])
 
   const onUserAmountInput = useCallback(
     (num: string) => {

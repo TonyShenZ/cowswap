@@ -53,7 +53,7 @@ function Updaters() {
       <UserUpdater />
       <ApplicationUpdater />
       <TransactionUpdater />
-      {/* <EnhancedTransactionUpdater /> */}
+      <EnhancedTransactionUpdater />
       <MulticallUpdater />
       <PendingOrdersUpdater />
       <CancelledOrdersUpdater />
