@@ -104,7 +104,7 @@ export default function Lend() {
   return (
     <LendCard>
       <LendBackground />
-      <TYPE.mediumHeader>Active Pools (20)</TYPE.mediumHeader>
+      <TYPE.mediumHeader>Active Pools ({Lends.tokens.length ?? 0})</TYPE.mediumHeader>
       <Line opacity={0.5} marginTop={32} marginBottom={24} />
       <AutoColumn gap={'lg'}>
         <LendHeader>
