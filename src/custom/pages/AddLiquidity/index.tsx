@@ -3,7 +3,6 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
-import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { useCallback, useContext, useState } from 'react'
 import { Plus } from 'react-feather'
 import ReactGA from 'react-ga'
@@ -12,38 +11,40 @@ import { Text } from 'rebass'
 import { ThemeContext } from 'styled-components/macro'
 
 import { ButtonError, ButtonLight, ButtonPrimary } from '../../components/Button'
-import { BlueCard, LightCard } from '../../components/Card'
-import { AutoColumn, ColumnCenter } from '../../components/Column'
-import CurrencyInputPanel from '../../components/CurrencyInputPanel'
-import DoubleCurrencyLogo from '../../components/DoubleLogo'
-import { AddRemoveTabs } from '../../components/NavigationTabs'
-import { MinimalPositionCard } from '../../components/PositionCard'
-import Row, { RowBetween, RowFlat } from '../../components/Row'
-import TransactionConfirmationModal, { ConfirmationModalContent } from '../../components/TransactionConfirmationModal'
-import { ZERO_PERCENT } from '../../constants/misc'
-import { WETH9_EXTENDED } from '../../constants/tokens'
-import { useCurrency } from '../../hooks/Tokens'
-import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
-import { useV2RouterContract } from '../../hooks/useContract'
-import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
-import useTransactionDeadline from '../../hooks/useTransactionDeadline'
-import { PairState } from '../../hooks/useV2Pairs'
-import { useActiveWeb3React } from '../../hooks/web3'
-import { useWalletModalToggle } from '../../state/application/hooks'
-import { Field } from '../../state/mint/actions'
-import { useDerivedMintInfo, useMintActionHandlers, useMintState } from '../../state/mint/hooks'
-import { TransactionType } from '../../state/transactions/actions'
-import { useTransactionAdder } from '../../state/transactions/hooks'
-import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '../../state/user/hooks'
-import { TYPE } from '../../theme'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
-import { calculateSlippageAmount } from '../../utils/calculateSlippageAmount'
-import { currencyId } from '../../utils/currencyId'
-import { maxAmountSpend } from '../../utils/maxAmountSpend'
+import { BlueCard, LightCard } from '@src/components/Card'
+import { AutoColumn, ColumnCenter } from '@src/components/Column'
+import CurrencyInputPanel from '@src/components/CurrencyInputPanel'
+import DoubleCurrencyLogo from '@src/components/DoubleLogo'
+import { AddRemoveTabs } from '@src/components/NavigationTabs'
+import { MinimalPositionCard } from '@src/components/PositionCard'
+import Row, { RowBetween, RowFlat } from '@src/components/Row'
+import TransactionConfirmationModal, { ConfirmationModalContent } from '@src/components/TransactionConfirmationModal'
+import { ZERO_PERCENT } from '@src/constants/misc'
+import { useCurrency } from '@src/hooks/Tokens'
+import { ApprovalState, useApproveCallback } from '@src/hooks/useApproveCallback'
+import { useV2RouterContract } from '@src/hooks/useContract'
+import { useIsSwapUnsupported } from '@src/hooks/useIsSwapUnsupported'
+import useTransactionDeadline from '@src/hooks/useTransactionDeadline'
+import { PairState } from '@src/hooks/useV2Pairs'
+import { useActiveWeb3React } from '@src/hooks/web3'
+// import { WETH9_EXTENDED } from '@src/custom/constants/tokens/tokensMod'
+import { WETH9 } from '@uniswap/sdk-core'
+import { useWalletModalToggle } from '@src/state/application/hooks'
+import { Field } from '@src/state/mint/actions'
+import { useDerivedMintInfo, useMintActionHandlers, useMintState } from '@src/state/mint/hooks'
+import { TransactionType } from '@src/state/transactions/actions'
+import { useTransactionAdder } from '@src/state/transactions/hooks'
+import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '@src/state/user/hooks'
+import { TYPE } from '@src/theme'
+import { calculateGasMargin } from '@src/utils/calculateGasMargin'
+import { calculateSlippageAmount } from '@src/utils/calculateSlippageAmount'
+import { currencyId } from '@src/utils/currencyId'
+import { maxAmountSpend } from '@src/utils/maxAmountSpend'
 import AppBody from '../AppBody'
-import { Dots, Wrapper } from '../Pool/styleds'
 import { ConfirmAddModalBottom } from './ConfirmAddModalBottom'
 import { PoolPriceBar } from './PoolPriceBar'
+import { Wrapper } from '@src/pages/AddLiquidity/styled'
+import { Dots } from '@src/pages/Pool/styleds'
 
 const DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -55,16 +56,12 @@ export default function AddLiquidity({
 }: RouteComponentProps<{ currencyIdA?: string; currencyIdB?: string }>) {
   const { account, chainId, library } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
-  console.log('xxxxxxxxx')
 
   const currencyA = useCurrency(currencyIdA)
   const currencyB = useCurrency(currencyIdB)
-  console.log(currencyA, currencyB)
 
   const oneCurrencyIsWETH = Boolean(
-    chainId &&
-      ((currencyA && currencyA.equals(WETH9_EXTENDED[chainId])) ||
-        (currencyB && currencyB.equals(WETH9_EXTENDED[chainId])))
+    chainId && ((currencyA && currencyA.equals(WETH9[chainId])) || (currencyB && currencyB.equals(WETH9[chainId])))
   )
 
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
@@ -321,8 +318,9 @@ export default function AddLiquidity({
 
   return (
     <>
-      <AppBody>
+      <AppBody margin={'120px'}>
         <AddRemoveTabs allowedSlippage={allowedSlippage} creating={isCreate} adding={true} />
+
         <Wrapper>
           <TransactionConfirmationModal
             isOpen={showConfirm}
@@ -493,8 +491,6 @@ export default function AddLiquidity({
           </AutoColumn>
         </Wrapper>
       </AppBody>
-      <SwitchLocaleLink />
-
       {!addIsUnsupported ? (
         pair && !noLiquidity && pairState !== PairState.INVALID ? (
           <AutoColumn style={{ minWidth: '20rem', width: '100%', maxWidth: '400px', marginTop: '1rem' }}>

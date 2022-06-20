@@ -37,6 +37,7 @@ export interface EnhancedTransactionDetails {
   presign?: { orderId: string }
   claim?: { recipient: string; cowAmountRaw?: string; indices: number[] }
   swapVCow?: boolean
+  deposit?: { from: string }
 
   // Wallet specific
   safeTransaction?: SafeMultisigTransactionResponse // Gnosis Safe transaction info
@@ -82,6 +83,7 @@ export default createReducer(initialState, (builder) =>
             safeTransaction,
             claim,
             data,
+            deposit,
             swapVCow,
           },
         }
@@ -105,6 +107,7 @@ export default createReducer(initialState, (builder) =>
           approval,
           presign,
           safeTransaction,
+          deposit,
           claim,
           swapVCow,
         }

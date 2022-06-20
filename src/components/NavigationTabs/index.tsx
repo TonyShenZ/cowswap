@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/macro'
+import SettingsTab from '@src/custom/components/Settings'
 import { Percent } from '@uniswap/sdk-core'
 import useTheme from 'hooks/useTheme'
 import { darken } from 'polished'
@@ -13,7 +14,6 @@ import styled from 'styled-components/macro'
 import { TYPE } from 'theme'
 
 import Row, { RowBetween } from '../Row'
-import SettingsTab from '../Settings'
 
 const Tabs = styled.div`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -97,15 +97,15 @@ export function FindPoolTabs({ origin }: { origin: string }) {
 }
 
 export function AddRemoveTabs({
+  allowedSlippage,
   adding,
   creating,
-  defaultSlippage,
   positionID,
   children,
 }: {
+  allowedSlippage: Percent
   adding: boolean
   creating: boolean
-  defaultSlippage: Percent
   positionID?: string | undefined
   showBackLink?: boolean
   children?: ReactNode | undefined
@@ -134,7 +134,7 @@ export function AddRemoveTabs({
           }}
           flex={children ? '1' : undefined}
         >
-          <StyledArrowLeft stroke={theme.text2} />
+          <StyledArrowLeft stroke={theme.text4} />
         </StyledHistoryLink>
         <TYPE.mediumHeader
           fontWeight={500}
@@ -150,7 +150,7 @@ export function AddRemoveTabs({
           )}
         </TYPE.mediumHeader>
         <Box style={{ marginRight: '.5rem' }}>{children}</Box>
-        <SettingsTab placeholderSlippage={defaultSlippage} />
+        <SettingsTab placeholderSlippage={allowedSlippage} />
       </RowBetween>
     </Tabs>
   )

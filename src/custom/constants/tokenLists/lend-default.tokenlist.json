@@ -1,0 +1,19 @@
+{
+  "name": "Lend Default List",
+  "timestamp": "2022-06-16T11:45:09Z",
+  "version": {
+    "major": 4,
+    "minor": 0,
+    "patch": 0
+  },
+  "tokens": [
+    {
+      "name": "USDC",
+      "symbol": "USDC Lend",
+      "address": "0xAC8B36d26f704c43cA3AAC6682083786eB83cf38",
+      "chainId": 97,
+      "decimals": 18,
+      "logoURI": "https://www.centre.io/hubfs/usdc-icon-86074d9d49.png"
+    }
+  ]
+}

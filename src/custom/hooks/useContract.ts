@@ -12,9 +12,13 @@ import { getContract } from 'utils'
 import ERC20_ABI from 'abis/erc20.json'
 import ERC20_BYTES32_ABI from 'abis/erc20_bytes32.json'
 
-import { GPv2Settlement, Erc20, VCow } from 'abis/types'
+import { GPv2Settlement, Erc20, VCow, Vault, ConfigurableInterestVaultConfig } from 'abis/types'
 import GPv2_SETTLEMENT_ABI from 'abis/GPv2Settlement.json'
 import V_COW_ABI from 'abis/vCow.json'
+
+// Lend
+import VAULT_ABI from 'abis/Vault.json'
+import VAULTCONFIG_ABI from 'abis/ConfigurableInterestVaultConfig.json'
 
 export * from '@src/hooks/useContract'
 
@@ -99,4 +103,16 @@ export function getBytes32TokenContract(
   chainId?: ChainId
 ): Contract | null {
   return _getContract(tokenAddress, ERC20_BYTES32_ABI, withSignerIfPossible, library, account, chainId)
+}
+
+export function useVaultContract() {
+  return useContract<Vault>('0xdfc169de2454CB5b925034433742956c416EE6C1', VAULT_ABI, true) as Vault
+}
+
+export function useVaultConfigContract() {
+  return useContract<ConfigurableInterestVaultConfig>(
+    '0x82C84973B4264212e9A1714481FBf8522a9B10Ed',
+    VAULTCONFIG_ABI,
+    false
+  ) as ConfigurableInterestVaultConfig
 }

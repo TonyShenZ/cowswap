@@ -105,6 +105,32 @@ export const ButtonLight = styled(ButtonLightMod)`
   }
 `
 
+export const ButtonGreen = styled(ButtonGrayMod)`
+  // CSS overrides
+  background-color: ${({ theme }) => theme.primary6};
+  width: fit-content;
+  &:hover,
+  &:focus {
+    box-shadow: none;
+    opacity: 0.9;
+    background-color: ${({ theme }) => theme.primary6};
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: auto;
+    animation: none;
+    color: ${({ theme }) => theme.primaryText1};
+
+    :hover {
+      cursor: auto;
+      background-color: ${({ theme }) => theme.primary5};
+      box-shadow: none;
+      border: ${({ theme }) => theme.buttonLight.borderHover};
+      outline: none;
+    }
+  }
+`
+
 export const ButtonGray = styled(ButtonGrayMod)`
   // CSS overrides
   &:hover,

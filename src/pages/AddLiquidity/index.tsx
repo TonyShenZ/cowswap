@@ -586,10 +586,10 @@ export default function AddLiquidity({
         />
         <PageWrapper wide={!hasExistingPosition}>
           <AddRemoveTabs
+            allowedSlippage={allowedSlippage}
             creating={false}
             adding={true}
             positionID={tokenId}
-            defaultSlippage={DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE}
             showBackLink={!hasExistingPosition}
           >
             {!hasExistingPosition && (

@@ -26,14 +26,17 @@ export function colors(darkMode: boolean): Colors {
     ...colorsUniswap(darkMode),
 
     // ****** base ******
-    white: darkMode ? '#c5daef' : '#ffffff',
+    white: darkMode ? '#ffffff' : '#ffffff',
     black: darkMode ? '#021E34' : '#000000',
 
     // ****** text ******
-    text1: darkMode ? '#c5daef' : '#000000',
+    text1: darkMode ? '#ffffff' : '#000000',
     text2: darkMode ? '#021E34' : '#000000',
     text3: darkMode ? 'rgba(197, 218, 239, 0.4)' : '#000000',
     text4: darkMode ? 'rgba(197, 218, 239, 0.7)' : '#000000b8',
+
+    // lend
+    text5: darkMode ? '#CDCDCD' : '#CDCDCD',
 
     // ****** backgrounds / greys ******
     bg1: darkMode ? '#163861' : '#D5E9F0',
@@ -46,6 +49,9 @@ export function colors(darkMode: boolean): Colors {
     bg8: darkMode ? '#021E34' : '#152943',
     bg9: darkMode ? '#16171A' : '#16171A',
 
+    // lend
+    bg10: darkMode ? '#F6F6F6' : '#000000',
+
     // ****** specialty colors ******
     advancedBG: darkMode ? '#163861' : '#d5e8f0',
 
@@ -57,6 +63,7 @@ export function colors(darkMode: boolean): Colors {
     primary6: darkMode ? '#1ED392' : '#1ED392',
     primary7: darkMode ? '#E74358' : '#E74358',
 
+    primary8: darkMode ? '#F2A440' : '#F2A440',
     // ****** color text ******
     primaryText1: darkMode ? '#021E34' : '#000000',
 
@@ -161,7 +168,7 @@ export function themeVariables(darkMode: boolean, colorsTheme: Colors) {
       border: `3px solid ${colorsTheme.black}`,
       padding: '12px 6px',
       maxWidth: {
-        normal: '460px',
+        normal: '480px',
         content: '680px',
         full: '100%',
       },

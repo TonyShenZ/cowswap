@@ -5,7 +5,7 @@ import application from 'state/application/reducer'
 // import { updateVersion } from '@src/state/global/actions'
 import user from '@src/state/user/reducer'
 import swap from '@src/state/swap/reducer'
-// import mint from '@src/state/mint/reducer'
+import mint from '@src/state/mint/reducer'
 // import mintV3 from '@src/state/mint/v3/reducer'
 // import lists from '@src/state/lists/reducer'
 // import burn from '@src/state/burn/reducer'
@@ -33,7 +33,7 @@ const UNISWAP_REDUCERS = {
   application,
   user,
   swap,
-  // mint,
+  mint,
   // mintV3,
   // burn,
   // burnV3,

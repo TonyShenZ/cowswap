@@ -23,7 +23,7 @@ export const BaseButton = styled(RebassButton)<
   ${({ theme, buttonSize = ButtonSize.DEFAULT }) => theme.buttonSizes[buttonSize]};
   font-weight: 500;
   text-align: center;
-  border-radius: ${({ $borderRadius }) => $borderRadius ?? '20px'};
+  border-radius: ${({ $borderRadius }) => $borderRadius ?? '12px'};
   outline: none;
   border: 1px solid transparent;
   color: white;
@@ -38,14 +38,6 @@ export const BaseButton = styled(RebassButton)<
   &:disabled {
     cursor: auto;
     pointer-events: none;
-  }
-
-  will-change: transform;
-  transition: transform 450ms ease;
-  transform: perspective(1px) translateZ(0);
-
-  &:hover {
-    transform: scale(0.99);
   }
 
   > * {

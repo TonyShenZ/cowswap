@@ -13,6 +13,7 @@ import {
   CollectFeesTransactionInfo,
   CreateV3PoolTransactionInfo,
   DelegateTransactionInfo,
+  DepositLendTransactionInfo,
   DepositLiquidityStakingTransactionInfo,
   ExactInputSwapTransactionInfo,
   ExactOutputSwapTransactionInfo,
@@ -151,6 +152,12 @@ function DepositLiquidityStakingSummary({}: { info: DepositLiquidityStakingTrans
   // not worth rendering the tokens since you can should no longer deposit liquidity in the staking contracts
   // todo: deprecate and delete the code paths that allow this, show user more information
   return <Trans>Deposit liquidity</Trans>
+}
+
+function DepositLend({}: { info: DepositLendTransactionInfo }) {
+  // not worth rendering the tokens since you can should no longer deposit liquidity in the staking contracts
+  // todo: deprecate and delete the code paths that allow this, show user more information
+  return <Trans>Deposit Lend</Trans>
 }
 
 function WithdrawLiquidityStakingSummary({}: { info: WithdrawLiquidityStakingTransactionInfo }) {
@@ -292,6 +299,9 @@ export function TransactionSummary({ info }: { info: TransactionInfo }) {
 
     case TransactionType.DEPOSIT_LIQUIDITY_STAKING:
       return <DepositLiquidityStakingSummary info={info} />
+
+    case TransactionType.DEPOSITING:
+      return <DepositLend info={info} />
 
     case TransactionType.WITHDRAW_LIQUIDITY_STAKING:
       return <WithdrawLiquidityStakingSummary info={info} />

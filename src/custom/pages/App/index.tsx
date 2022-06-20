@@ -17,9 +17,23 @@ import { SENTRY_IGNORED_GP_QUOTE_ERRORS } from 'api/gnosisProtocol/errors/QuoteE
 const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN
 const SENTRY_TRACES_SAMPLE_RATE = process.env.REACT_APP_SENTRY_TRACES_SAMPLE_RATE
 
-// const Swap = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Swap'))
+const Swap = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Swap'))
 // const Limit = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Limit'))
 const OrderBook = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/OrderBook'))
+const Pool = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Pool'))
+const PoolFinder = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Pool'))
+
+const RedirectDuplicateTokenIdsV2 = lazy(
+  () => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/AddLiquidity/redirects')
+)
+
+const Lend = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Lend'))
+const LendDepPage = lazy(
+  () => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ '@src/custom/pages/Lend/LendDepPage')
+)
+const LendWitPage = lazy(
+  () => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ '@src/custom/pages/Lend/LendWitPage')
+)
 
 // const Claim = lazy(() => import(/* webpackChunkName: "claim" */ 'pages/Claim'))
 // const PrivacyPolicy = lazy(() => import(/* webpackChunkName: "privacy_policy" */ 'pages/PrivacyPolicy'))
@@ -56,20 +70,11 @@ export const Wrapper = styled(AppMod)``
 
 export const BodyWrapper = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100%;
-  align-items: center;
   justify-content: center;
-  flex: auto;
+  align-items: center;
   z-index: 1;
-
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    padding: 0 10px 0;
-  `}
-
-  ${({ theme }) => theme.mediaWidth.upToExtraLarge`
-    align-items: flex-start;
-  `}
 `
 
 export const LoadingWrapper = styled.div`
@@ -103,7 +108,17 @@ export default function App() {
           <Switch>
             <Route exact strict path="/orderBook" component={OrderBook} />
 
-            {/* <Route exact strict path="/swap" component={Swap} /> */}
+            <Route exact strict path="/pool/v2/find" component={PoolFinder} />
+
+            <Route exact strict path="/pool/v2" component={Pool} />
+
+            <Route exact strict path="/add/v2/:currencyIdA?/:currencyIdB?" component={RedirectDuplicateTokenIdsV2} />
+
+            <Route exact strict path="/lend" component={Lend} />
+            <Route exact strict path="/lend/out/:address" component={LendDepPage} />
+            <Route exact strict path="/lend/in/:address" component={LendWitPage} />
+
+            <Route exact strict path="/swap" component={Swap} />
             {/* <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} /> */}
             {/* <Route exact strict path="/limit" component={Limit} /> */}
 

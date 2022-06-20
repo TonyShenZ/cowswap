@@ -290,10 +290,10 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       />
       <AppBody>
         <AddRemoveTabs
+          allowedSlippage={allowedSlippage}
           creating={false}
           adding={false}
           positionID={tokenId.toString()}
-          defaultSlippage={DEFAULT_REMOVE_V3_LIQUIDITY_SLIPPAGE_TOLERANCE}
         />
         <Wrapper>
           {position ? (

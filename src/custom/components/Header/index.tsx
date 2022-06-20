@@ -13,7 +13,7 @@ import HeaderMod, {
   HeaderElement,
   AccountElement,
   HeaderElementWrap,
-  // StyledNavLink as StyledNavLinkUni,
+  StyledNavLink as StyledNavLinkUni,
   StyledMenuButton,
   HeaderFrame,
   // UNIWrapper,
@@ -25,7 +25,7 @@ import { useActiveWeb3React } from 'hooks/web3'
 import { useETHBalances } from 'state/wallet/hooks'
 import { AMOUNT_PRECISION } from 'constants/index'
 // import { useDarkModeManager } from 'state/user/hooks'
-// import { darken } from 'polished'
+import { darken } from 'polished'
 // import TwitterImage from 'assets/cow-swap/twitter.svg'
 import OrdersPanel from 'components/OrdersPanel'
 import { ApplicationModal } from 'state/application/reducer'
@@ -69,19 +69,19 @@ export interface LinkType {
   path: string
 }
 
-// const StyledNavLink = styled(StyledNavLinkUni)`
-//   transition: color 0.15s ease-in-out;
-//   color: ${({ theme }) => darken(0.3, theme.text1)};
+const StyledNavLink = styled(StyledNavLinkUni)`
+  transition: color 0.15s ease-in-out;
+  color: ${({ theme }) => darken(0.3, theme.text1)};
 
-//   &:first-of-type {
-//     margin: 0 12px 0 0;
-//   }
+  &:first-of-type {
+    margin: 0 12px 0 0;
+  }
 
-//   &:hover,
-//   &:focus {
-//     color: ${({ theme }) => theme.text1};
-//   }
-// `
+  &:hover,
+  &:focus {
+    color: ${({ theme }) => theme.text1};
+  }
+`
 
 const BalanceText = styled(BalanceTextUni)`
   ${({ theme }) => theme.mediaWidth.upToMedium`
@@ -271,8 +271,11 @@ export default function Header() {
           </Title>
           <HeaderLinks>
             {/* <StyledNavLink to="/swap">Swap</StyledNavLink> */}
+            <StyledNavLink to="/orderBook">OrderBook</StyledNavLink>
+            <StyledNavLink to="/pool/v2">Pool</StyledNavLink>
+            <StyledNavLink to="/lend">Lend</StyledNavLink>
+            {/* <StyledNavLink to="/order">Swap</StyledNavLink> */}
             {/* <StyledNavLink to="/profile">Profile</StyledNavLink> */}
-            {/* <StyledNavLink to="/orderBook">OrderBook</StyledNavLink> */}
           </HeaderLinks>
         </HeaderRow>
 

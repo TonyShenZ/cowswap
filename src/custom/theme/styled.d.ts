@@ -5,6 +5,7 @@ import { ButtonSize } from 'theme'
 export interface Colors extends ColorsUniswap {
   bg8: Color
   bg9: Color
+  bg10: Color
   purple: Color
   yellow: Color
   redShade: Color
@@ -42,6 +43,9 @@ export interface Colors extends ColorsUniswap {
   /** */
   primary6: Color
   primary7: Color
+
+  /** Lend */
+  primary8: Color
 }
 
 declare module 'styled-components' {

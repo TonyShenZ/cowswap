@@ -87,6 +87,8 @@ export function useHasPendingApproval(tokenAddress: string | undefined, spender:
         if (tx.receipt) {
           return false
         } else {
+          console.log(tx)
+
           if (tx.info.type !== TransactionType.APPROVAL) return false
           return tx.info.spender === spender && tx.info.tokenAddress === tokenAddress && isTransactionRecent(tx)
         }

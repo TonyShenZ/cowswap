@@ -45,6 +45,7 @@ export default createReducer(initialState, (builder) =>
       })
     })
     .addCase(addTransaction, (transactions, { payload: { chainId, from, hash, info } }) => {
+      debugger
       if (transactions[chainId]?.[hash]) {
         throw Error('Attempted to add existing transaction.')
       }

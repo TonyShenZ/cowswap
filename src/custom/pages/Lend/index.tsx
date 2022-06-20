@@ -1,0 +1,192 @@
+import { Text } from 'rebass'
+import { useMemo } from 'react'
+import styled from 'styled-components/macro'
+import { TYPE } from '@src/theme'
+
+import { useVaultContract, useTokenContract, useVaultConfigContract } from '@src/custom/hooks/useContract'
+import { useSingleCallResult } from 'state/multicall/hooks'
+import { formatEther } from '@ethersproject/units'
+import { useActiveWeb3React } from '@src/hooks/web3'
+
+import { ButtonOutlined } from '@src/components/Button'
+import Card from '@src/components/Card'
+import { AutoColumn } from '@src/components/Column'
+import Row, { RowFixed } from '@src/components/Row'
+import { IconWrapper } from '@src/custom/components/AccountDetails/AccountDetailsMod'
+
+import Lends from 'constants/tokenLists/lend-default.tokenlist.json'
+
+import { Link } from 'react-router-dom'
+
+export const LendCard = styled(Card)`
+  position: relative;
+  margin-top: 40px;
+  width: 1200px;
+
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 32px 36px;
+`
+export const LendBackground = styled.div`
+  position: absolute;
+  width: 771px;
+  height: 267px;
+  top: 350px;
+  left: 50%;
+  right: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(182, 92, 252, 0.29);
+  filter: blur(288px);
+  z-index: -1;
+`
+const Line = styled(Row)`
+  width: 100%;
+  height: 1px;
+  background: ${({ theme }) => theme.bg10};
+`
+
+const ApyText = styled(Text)`
+  width: fit-content;
+  background: linear-gradient(90deg, #76ff84 0%, #ffbe15 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+`
+const LendHeader = styled.div`
+  width: 100%;
+  display: grid;
+  grid-template-columns: 135px repeat(6, 1fr);
+  grid-gap: 20px;
+`
+const LendHederWrap = styled.div<{ algin?: 'start' | 'center' | 'end' }>`
+  text-align: ${({ algin }) => algin ?? 'start'};
+`
+
+export const LendButtonOutlined = styled(ButtonOutlined)`
+  width: 120px;
+  border: 1px solid ${({ theme }) => theme.bg10};
+  padding: 8px;
+  &:focus {
+    box-shadow: 0 0 0 1px ${({ theme }) => theme.bg10};
+  }
+  &:hover {
+    box-shadow: 0 0 0 1px ${({ theme }) => theme.bg10};
+  }
+  &:active {
+    box-shadow: 0 0 0 1px ${({ theme }) => theme.bg10};
+  }
+  &:disabled {
+    opacity: 50%;
+    cursor: auto;
+  }
+`
+
+const LendItemWrapper = styled(LendHeader)`
+  padding: 0;
+  align-items: center;
+`
+
+const ONE_YEAR = 3600 * 24 * 365
+
+export default function Lend() {
+  return (
+    <LendCard>
+      <LendBackground />
+      <TYPE.mediumHeader>Active Pools (20)</TYPE.mediumHeader>
+      <Line opacity={0.5} marginTop={32} marginBottom={24} />
+      <AutoColumn gap={'lg'}>
+        <LendHeader>
+          <LendHederWrap algin={'center'}>Pool</LendHederWrap>
+          <LendHederWrap>APY</LendHederWrap>
+          <LendHederWrap>Total Supply</LendHederWrap>
+          <LendHederWrap>Total Borrowed</LendHederWrap>
+          <LendHederWrap>Utilization</LendHederWrap>
+          <LendHederWrap>Your Balance</LendHederWrap>
+        </LendHeader>
+        {Lends.tokens.map((item) => (
+          <>
+            <LendItem key={item.address} tokenAddress={item.address} name={item.name} logoURI={item.logoURI} />
+            <Line opacity={0.15} />
+          </>
+        ))}
+      </AutoColumn>
+    </LendCard>
+  )
+}
+
+function LendItem({ tokenAddress, logoURI, name }: { tokenAddress: string; logoURI: string; name: string }) {
+  const { account } = useActiveWeb3React()
+  const vaultContract = useVaultContract()
+
+  const vaultConfigContract = useVaultConfigContract()
+
+  const tokenContract = useTokenContract(tokenAddress)
+
+  // Erc20 balance
+  const erc20Balance = useSingleCallResult(tokenContract, 'balanceOf', [account ?? undefined])?.result?.[0]
+
+  // vault balance
+  const vaultBalance = useSingleCallResult(vaultContract, 'balanceOf', [account ?? undefined])?.result?.[0]
+
+  // total borrowed
+  const vaultDebtVal = useSingleCallResult(vaultContract, 'vaultDebtVal')?.result?.[0]
+
+  // total supply
+  const totalToken = useSingleCallResult(vaultContract, 'totalToken')?.result?.[0]
+
+  // ratePerSec
+  const ratePerSec = useSingleCallResult(vaultConfigContract, 'getInterestRate', [vaultDebtVal, erc20Balance])
+    ?.result?.[0]
+
+  // utilization
+  const utilization = useMemo(() => {
+    if (!vaultDebtVal || !totalToken) return
+    return vaultDebtVal.mul(10000).div(totalToken).toNumber() / 100
+  }, [vaultDebtVal, totalToken])
+
+  // apr
+  const apr = useMemo(() => {
+    if (!erc20Balance || erc20Balance <= 0 || !ratePerSec) return
+    return ratePerSec.mul(ONE_YEAR).mul(10000).div(erc20Balance)
+  }, [erc20Balance, ratePerSec])
+  return (
+    <LendItemWrapper>
+      <RowFixed>
+        <IconWrapper size={32}>
+          <img src={logoURI} alt={name} />
+        </IconWrapper>
+        {name}
+      </RowFixed>
+      <RowFixed>
+        <ApyText fontSize={20}>{apr ? `${apr.toString()} %` : '-'}</ApyText>
+      </RowFixed>
+      <RowFixed>{totalToken ? `${format(formatEther(totalToken))} ${name}` : '-'}</RowFixed>
+      <RowFixed>{vaultDebtVal ? `${format(formatEther(vaultDebtVal))} ${name}` : '-'}</RowFixed>
+      <RowFixed>{utilization ? `${format(utilization.toString())} %` : '-'}</RowFixed>
+      <RowFixed>{erc20Balance ? `${format(formatEther(erc20Balance))} ${name}` : '-'}</RowFixed>
+      <AutoColumn gap="5px" justify={'center'}>
+        <LendButtonOutlined as={Link} to={`/lend/out/${tokenAddress}`}>
+          Deposit
+        </LendButtonOutlined>
+        <LendButtonOutlined as={Link} to={`/lend/in/${tokenAddress}`}>
+          Withdraw
+        </LendButtonOutlined>
+      </AutoColumn>
+    </LendItemWrapper>
+  )
+}
+
+function format(num: string) {
+  const newNum = parseFloat(num).toFixed(2)
+  if (newNum) {
+    const nums = newNum.split('.')
+    if (nums[1] && parseInt(nums[1]) > 0) {
+      return newNum
+    }
+    return nums[0]
+  }
+  return num
+}

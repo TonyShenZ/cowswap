@@ -34,6 +34,7 @@ export enum TransactionType {
   COLLECT_FEES = 12,
   REMOVE_LIQUIDITY_V3 = 13,
   SUBMIT_PROPOSAL = 14,
+  DEPOSITING = 15,
 }
 
 export interface BaseTransactionInfo {
@@ -83,6 +84,10 @@ export interface DepositLiquidityStakingTransactionInfo {
   type: TransactionType.DEPOSIT_LIQUIDITY_STAKING
   token0Address: string
   token1Address: string
+}
+export interface DepositLendTransactionInfo {
+  type: TransactionType.DEPOSITING
+  tokenAddress: string | undefined
 }
 
 export interface WithdrawLiquidityStakingTransactionInfo {
@@ -160,6 +165,7 @@ export type TransactionInfo =
   | VoteTransactionInfo
   | DelegateTransactionInfo
   | DepositLiquidityStakingTransactionInfo
+  | DepositLendTransactionInfo
   | WithdrawLiquidityStakingTransactionInfo
   | WrapTransactionInfo
   | CreateV3PoolTransactionInfo
