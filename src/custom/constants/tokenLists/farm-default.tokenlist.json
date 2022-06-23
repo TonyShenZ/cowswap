@@ -1,0 +1,37 @@
+{
+  "name": "Available Pools",
+  "timestamp": "2022-06-16T11:45:09Z",
+  "version": {
+    "major": 4,
+    "minor": 0,
+    "patch": 0
+  },
+  "pools": [
+    {
+      "name": "FARM-USDC",
+      "configKey": "pcs-farm-usdc",
+      "source": 1,
+      "leverage": 3,
+      "factory": "0x768ACbc5886a39817e1197EedeD9f075fFBe3389",
+      "pairAddress": "0x07Ff8D9C794Eda4D13522552B3DB676134c89623",
+      "tokenList": [
+        {
+          "name": "FARM",
+          "symbol": "FARM",
+          "address": "0xf5EB09f8a4bBE663b044f2eC10dE5237007925c8",
+          "chainId": 97,
+          "decimals": 18,
+          "logoURI": "https://www.centre.io/hubfs/usdc-icon-86074d9d49.png"
+        },
+        {
+          "name": "USDC",
+          "symbol": "USDC",
+          "address": "0xAC8B36d26f704c43cA3AAC6682083786eB83cf38",
+          "chainId": 97,
+          "decimals": 18,
+          "logoURI": "https://www.centre.io/hubfs/usdc-icon-86074d9d49.png"
+        }
+      ]
+    }
+  ]
+}

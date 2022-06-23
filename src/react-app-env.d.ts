@@ -5,6 +5,8 @@ declare module '@metamask/jazzicon' {
 }
 
 declare module 'fortmatic'
+declare module '@rebass/forms'
+
 
 interface Window {
   console: Console & { force: Console }

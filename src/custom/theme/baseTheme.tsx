@@ -38,6 +38,9 @@ export function colors(darkMode: boolean): Colors {
     // lend
     text5: darkMode ? '#CDCDCD' : '#CDCDCD',
 
+    // Farm
+    text6: darkMode ? '#999999' : '#999999',
+
     // ****** backgrounds / greys ******
     bg1: darkMode ? '#163861' : '#D5E9F0',
     bg2: darkMode ? '#000000' : '#ffffff',
@@ -64,6 +67,11 @@ export function colors(darkMode: boolean): Colors {
     primary7: darkMode ? '#E74358' : '#E74358',
 
     primary8: darkMode ? '#F2A440' : '#F2A440',
+
+    primary9: darkMode
+      ? 'linear-gradient(90deg, #40FFE8 0%, #FF9C07 100%);'
+      : 'linear-gradient(90deg, #40FFE8 0%, #FF9C07 100%);',
+
     // ****** color text ******
     primaryText1: darkMode ? '#021E34' : '#000000',
 
@@ -304,7 +312,9 @@ export const UniFixedGlobalStyle = css`
   input,
   textarea,
   button {
-    font-family: 'Inter', sans-serif;
+    /* font-family: 'Inter', sans-serif; */
+    font-family: 'apple-system', 'Helvetica Neue', 'Helvetica', 'Arial', 'Heiti SC', 'Microsoft YaHei', 'Micro Hei',
+      'Inter', sans-serif;
     font-display: fallback;
   }
   @supports (font-variation-settings: normal) {
@@ -312,7 +322,8 @@ export const UniFixedGlobalStyle = css`
     input,
     textarea,
     button {
-      font-family: 'Inter var', sans-serif;
+      font-family: 'apple-system', 'Helvetica Neue', 'Helvetica', 'Arial', 'Heiti SC', 'Microsoft YaHei', 'Micro Hei',
+        'Inter var', sans-serif;
     }
   }
   html,

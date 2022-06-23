@@ -12,7 +12,7 @@ import { ButtonEmpty } from '../Button'
 const InputPanelWrapper = styled(InputPanel)`
   padding: 10px;
   border-radius: 12px;
-  background: #16171a;
+  background: ${({ theme }) => theme.bg9}; ;
 `
 const InputWrapper = styled(Input)`
   width: 90%;

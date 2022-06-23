@@ -46,6 +46,10 @@ export interface Colors extends ColorsUniswap {
 
   /** Lend */
   primary8: Color
+
+  /** Farm */
+  primary9: Color
+  
 }
 
 declare module 'styled-components' {

@@ -1,6 +1,6 @@
 import styled from 'styled-components/macro'
 import { ButtonProps } from 'rebass/styled-components'
-import { ChevronDown } from 'react-feather'
+import { ChevronDown, ChevronUp } from 'react-feather'
 
 import { RowBetween } from 'components/Row'
 
@@ -28,7 +28,7 @@ export const ButtonPrimary = styled(ButtonPrimaryMod)`
   font-size: ${({ theme }) => theme.buttonPrimary.fontSize};
   font-weight: ${({ theme }) => theme.buttonPrimary.fontWeight};
   border: ${({ theme }) => theme.buttonPrimary.border};
-  box-shadow: ${({ theme }) => theme.buttonPrimary.boxShadow};
+  /* box-shadow: ${({ theme }) => theme.buttonPrimary.boxShadow}; */
   border-radius: ${({ theme }) => theme.buttonPrimary.borderRadius};
   color: ${({ theme }) => theme.primaryText1};
   ${({ theme }) => theme.cursor};
@@ -59,6 +59,22 @@ export const ButtonPrimary = styled(ButtonPrimaryMod)`
     transform: none;
   }
 `
+
+export function ButtonDropRise({
+  disabled = false,
+  down = true,
+  children,
+  ...rest
+}: { disabled?: boolean; down: boolean } & ButtonProps) {
+  return (
+    <ButtonPrimary {...rest} disabled={disabled}>
+      <RowBetween>
+        <div style={{ display: 'flex', alignItems: 'center' }}>{children}</div>
+        {down ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+      </RowBetween>
+    </ButtonPrimary>
+  )
+}
 
 export const ButtonLight = styled(ButtonLightMod)`
   // CSS override
@@ -158,13 +174,13 @@ export const ButtonOutlined = styled(ButtonOutlinedMod)`
   ${({ theme }) => theme.buttonOutlined.background}
   font-size: ${({ theme }) => theme.buttonOutlined.fontSize};
   font-weight: ${({ theme }) => theme.buttonOutlined.fontWeight};
-  border: ${({ theme }) => theme.buttonOutlined.border};
-  box-shadow: ${({ theme }) => theme.buttonOutlined.boxShadow};
+  /* border: ${({ theme }) => theme.buttonOutlined.border}; */
+  /* box-shadow: ${({ theme }) => theme.buttonOutlined.boxShadow}; */
   border-radius: ${({ theme }) => theme.buttonOutlined.borderRadius};
   ${({ theme }) => theme.cursor};
   overflow: hidden;
   position: relative;
-  transition: box-shadow 0.1s ease-in-out, transform 0.1s ease-in-out;
+  /* transition: box-shadow 0.1s ease-in-out, transform 0.1s ease-in-out; */
 
   > div {
     font-size: inherit;
@@ -174,10 +190,9 @@ export const ButtonOutlined = styled(ButtonOutlinedMod)`
   &:focus,
   &:hover,
   &:active {
-    ${({ theme }) => theme.buttonPrimary.background}
     border: ${({ theme }) => theme.buttonPrimary.border};
     box-shadow: none;
-    transform: translateY(3px);
+    /* transform: translateY(3px); */
   }
   &:disabled {
     background-color: ${({ theme }) => theme.disabled};

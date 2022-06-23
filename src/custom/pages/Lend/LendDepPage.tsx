@@ -23,10 +23,11 @@ import { useAddPopup, useWalletModalToggle } from '@src/custom/state/application
 import { useTotalSupply } from '@src/hooks/useTotalSupply'
 import CurrencyLogo from '@src/custom/components/CurrencyLogo'
 
-const InputPanelWrapper = styled(InputPanel)`
+export const InputPanelWrapper = styled(InputPanel)`
+  flex: 1 1 auto;
   padding: 10px;
   border-radius: 12px;
-  background: #16171a;
+  background: ${({ theme }) => theme.bg9}; ;
 `
 const InputWrapper = styled(Input)`
   width: 90%;

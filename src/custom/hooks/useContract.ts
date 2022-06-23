@@ -12,13 +12,16 @@ import { getContract } from 'utils'
 import ERC20_ABI from 'abis/erc20.json'
 import ERC20_BYTES32_ABI from 'abis/erc20_bytes32.json'
 
-import { GPv2Settlement, Erc20, VCow, Vault, ConfigurableInterestVaultConfig } from 'abis/types'
+import { GPv2Settlement, Erc20, VCow, Vault, ConfigurableInterestVaultConfig, IPancakeFactory } from 'abis/types'
 import GPv2_SETTLEMENT_ABI from 'abis/GPv2Settlement.json'
 import V_COW_ABI from 'abis/vCow.json'
 
 // Lend
 import VAULT_ABI from 'abis/Vault.json'
 import VAULTCONFIG_ABI from 'abis/ConfigurableInterestVaultConfig.json'
+
+// Farm
+import V2_FACTORY_ABI from 'abis/IPancakeFactory.json'
 
 export * from '@src/hooks/useContract'
 
@@ -115,4 +118,8 @@ export function useVaultConfigContract() {
     VAULTCONFIG_ABI,
     false
   ) as ConfigurableInterestVaultConfig
+}
+
+export function useV2FactoryContract(tokenAddress?: string) {
+  return useContract<IPancakeFactory>(tokenAddress, V2_FACTORY_ABI, false) as IPancakeFactory
 }

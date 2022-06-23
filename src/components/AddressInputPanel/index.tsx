@@ -49,7 +49,7 @@ const Input = styled.input<{ error?: boolean }>`
   font-weight: 500;
   width: 100%;
   ::placeholder {
-    color: ${({ theme }) => theme.text4};
+    color: #9da1af;
   }
   padding: 0px;
   -webkit-appearance: textfield;
