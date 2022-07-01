@@ -70,7 +70,8 @@ export function ButtonDropRise({
     <ButtonPrimary {...rest} disabled={disabled}>
       <RowBetween>
         <div style={{ display: 'flex', alignItems: 'center' }}>{children}</div>
-        {down ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+
+        {down ? <ChevronDown size={14} style={{ marginLeft: 5 }} /> : <ChevronUp size={14} style={{ marginLeft: 5 }} />}
       </RowBetween>
     </ButtonPrimary>
   )

@@ -54,6 +54,8 @@ export function colors(darkMode: boolean): Colors {
 
     // lend
     bg10: darkMode ? '#F6F6F6' : '#000000',
+    // farm
+    bg11: darkMode ? '#9DA1AF' : '#9DA1AF',
 
     // ****** specialty colors ******
     advancedBG: darkMode ? '#163861' : '#d5e8f0',

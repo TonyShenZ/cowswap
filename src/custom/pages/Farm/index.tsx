@@ -2,12 +2,12 @@ import { TYPE } from '@src/custom/theme'
 import { Link } from 'react-router-dom'
 import styled, { ThemeContext } from 'styled-components/macro'
 import { Trans } from '@lingui/macro'
-import { useV2FactoryContract } from '@src/custom/hooks/useContract'
 import { Label, Radio } from '@rebass/forms'
 import { Box, Flex, Text } from 'rebass'
 import { Search } from 'react-feather'
 import {
   ApyText,
+  format,
   LendBackground,
   LendButtonOutlined,
   LendCard,
@@ -24,12 +24,27 @@ import { ButtonFarmPrimary } from '@src/components/Button'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { darken } from 'polished'
 import CommonSelect from '@src/custom/pages/Farm/CommonSelect'
+import { InputPanelWrapper } from '../Lend/LendDepPage'
+
+import { get } from '@src/custom/utils/request'
 
 import Farms from 'constants/tokenLists/farm-default.tokenlist.json'
-import { InputPanelWrapper } from '../Lend/LendDepPage'
+// import { useV2FactoryContract } from '@src/custom/hooks/useContract'
 // import { useSingleCallResult } from '@src/state/multicall/hooks'
-
-interface PoolMeta {
+export interface VaultMeta {
+  address: string
+  base_token: string
+  daily_borrow_interest: string
+  base_price: string
+  workers: {
+    address: string
+    farm_token: string
+    pair: string
+    tvl: string
+    trading_fee: string
+  }[]
+}
+export interface PoolMeta {
   name: string
   source: number
   factory: string
@@ -44,7 +59,7 @@ const RadioComponents = styled(Radio)`
     background-color: transparent;
   }
 `
-const FarmText = styled(Text)`
+export const FarmText = styled(Text)`
   line-height: 16px;
   font-weight: 700;
 `
@@ -130,13 +145,22 @@ export const InputComponents = styled.input`
   }
 
   ::placeholder {
-    color: #9da1af;
+    color: ${({ theme }) => theme.bg11};
   }
 `
 
 export default function Farm() {
   const theme = useContext(ThemeContext)
   const myPosition = false
+
+  // const factoryContract = useV2FactoryContract('0x768ACbc5886a39817e1197EedeD9f075fFBe3389')
+  // const pair = useSingleCallResult(factoryContract, 'getPair', [
+  //   '0xf5EB09f8a4bBE663b044f2eC10dE5237007925c8',
+  //   '0xAC8B36d26f704c43cA3AAC6682083786eB83cf38',
+  // ])
+  // 0x07Ff8D9C794Eda4D13522552B3DB676134c89623
+  // 0x07Ff8D9C794Eda4D13522552B3DB676134c89623
+  // console.log(pair)
 
   const [dexIndex, setDexIndex] = useState(0)
   const dexList = useMemo(() => ['All', 'PancakeSwap', 'HashDEX'], [])
@@ -298,27 +322,52 @@ export default function Farm() {
 }
 
 function AvailableItem({ pool }: { pool: PoolMeta }) {
-  // const factoryContract = useV2FactoryContract(pool.factory)
-  // console.log(factoryContract)
-
-  // const getPair = useSingleCallResult(
-  //   factoryContract,
-  //   'getPair',
-  //   pool.pair.map((x) => x.address)
-  // )
-  // console.log(pool.pair.map((x) => x.address))
-
-  // console.log(getPair)
-
   const [leverage, setLeverage] = useState(pool.leverage)
 
-  const [select, setSelect] = useState(1)
-  const [proposal, setProposal] = useState(pool.tokenList[select])
-  const handleProposal = (index: number) => {
-    if (select === index) return
-    setSelect(index)
-    setProposal(pool.tokenList[index])
-  }
+  const [vaultConfig, setVaultConfig] = useState([])
+
+  const [proposal, setProposal] = useState<VaultMeta>()
+
+  const handleProposal = useCallback(
+    (vault: VaultMeta) => {
+      setProposal(vault)
+    },
+    [setProposal]
+  )
+
+  const getVaultList = useCallback(async () => {
+    const { result } = await get('/vault/list')
+    setVaultConfig(result)
+    setProposal(result[0])
+  }, [setVaultConfig])
+
+  // Minimum correction when out of focus
+  const handleLeverageValueInputBlur = useCallback(() => {
+    if (!leverage) setLeverage(1)
+  }, [leverage, setLeverage])
+
+  const poolFees = useMemo(() => {
+    if (!proposal) return
+    const tradingFees = parseFloat(proposal.workers[0].trading_fee) * 365 * 100 * leverage ?? 1
+    const tvl = proposal.workers[0].tvl
+    const totalApr = tradingFees - -parseFloat(proposal.daily_borrow_interest ?? '0') * 365 * 100 * 1
+    const totalAprLeve = totalApr * (leverage ?? 1 - 1)
+    const dailyApr = totalAprLeve / 365
+    const totalApy = ((1 + dailyApr / 100) ** 365 - 1) * 100
+    const originalApy = ((1 + totalApr / 365 / 100) ** 365 - 1) * 100
+    return {
+      tradingFees,
+      tvl,
+      totalApr: totalAprLeve.toString(),
+      dailyApr: dailyApr.toString(),
+      totalApy: totalApy.toString(),
+      originalApy: originalApy.toString(),
+    }
+  }, [leverage, proposal])
+
+  useEffect(() => {
+    getVaultList()
+  }, [getVaultList])
 
   return (
     <FarmItemWrapper>
@@ -327,13 +376,13 @@ function AvailableItem({ pool }: { pool: PoolMeta }) {
         <AutoColumn gap="8px">
           <FarmText>{pool.name}</FarmText>
           <FarmText fontSize={14}>{replaceSource(pool.source)}</FarmText>
-          <FarmText fontSize={14}>TVL $8.26M</FarmText>
+          <FarmText fontSize={14}>TVL ${poolFees?.tvl ? format(poolFees.tvl) : '-'}</FarmText>
         </AutoColumn>
       </RowFixed>
       <RowFixed>
         <AutoColumn gap="8px">
-          <ApyText fontSize={20}>30.12%</ApyText>
-          <ThroughText fontSize={14}>15.12%</ThroughText>
+          <ApyText fontSize={20}>{poolFees?.totalApy ? `${format(poolFees?.totalApy)} %` : '-'}</ApyText>
+          <ThroughText fontSize={14}>{poolFees?.originalApy ? `${format(poolFees?.originalApy)} %` : '-'} </ThroughText>
         </AutoColumn>
       </RowFixed>
 
@@ -344,29 +393,21 @@ function AvailableItem({ pool }: { pool: PoolMeta }) {
         </RowBetween>
         <RowBetween>
           <FarmText fontSize={14}>Trading Fees:</FarmText>
-          <FarmText fontSize={14}>7.35%</FarmText>
+          <FarmText fontSize={14}>{poolFees?.tradingFees ? `${poolFees.tradingFees.toFixed(6)} %` : '-'}</FarmText>
         </RowBetween>
         <RowBetween>
           <FarmText fontSize={14}>Borrowing Income:</FarmText>
-          {/* <div>
-            <SelectComponents width="153px" onChange={(s) => console.log(s.target.value)}>
-              {pool.pair.map((t) => (
-                <option key={t.address} value={t.address}>
-                  <IconWrapper size={32}></IconWrapper>
-                  {t.symbol}
-                </option>
-              ))}
-            </SelectComponents>
-          </div> */}
-          <CommonSelect proposals={pool.tokenList} proposal={proposal} onSelect={handleProposal} />
+          {vaultConfig && vaultConfig.length > 0 && proposal ? (
+            <CommonSelect proposals={vaultConfig} leverage={leverage} proposal={proposal} onSelect={handleProposal} />
+          ) : null}
         </RowBetween>
         <RowBetween>
           <FarmText fontSize={14}>Total APR:</FarmText>
-          <ApyText fontSize={14}>7.87%</ApyText>
+          <ApyText fontSize={14}>{poolFees?.totalApr ? `${format(poolFees.totalApr)} %` : '-'}</ApyText>
         </RowBetween>
         <RowBetween>
           <FarmText fontSize={14}>Daily APR:</FarmText>
-          <FarmText fontSize={14}>0.0197%</FarmText>
+          <FarmText fontSize={14}>{poolFees?.dailyApr ? `${format(poolFees.dailyApr, 4)} %` : '-'}</FarmText>
         </RowBetween>
       </AutoColumn>
 
@@ -375,9 +416,12 @@ function AvailableItem({ pool }: { pool: PoolMeta }) {
           type="number"
           id="leverageInput"
           min={1}
-          max={leverage}
+          max={pool.leverage}
           value={leverage}
-          onChange={(l) => setLeverage(parseInt(l.target.value))}
+          onBlur={handleLeverageValueInputBlur}
+          onChange={(l) => {
+            setLeverage(parseInt(l.target.value))
+          }}
         />
       </RowFixed>
       <AutoColumn gap="5px" justify={'center'}>

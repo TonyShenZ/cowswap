@@ -6,6 +6,7 @@ export interface Colors extends ColorsUniswap {
   bg8: Color
   bg9: Color
   bg10: Color
+  bg11: Color
   purple: Color
   yellow: Color
   redShade: Color

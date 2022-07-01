@@ -230,6 +230,7 @@
     "@gnosis.pm/gp-v2-contracts": "^1.1.2",
     "@gnosis.pm/safe-service-client": "^0.1.1",
     "@reach/listbox": "^0.17.0",
+    "@reach/slider": "^0.17.0",
     "@rebass/forms": "^4.0.6",
     "@sentry/react": "^6.11.0",
     "@sentry/tracing": "^6.11.0",
@@ -244,6 +245,7 @@
     "react-appzi": "^1.0.4",
     "react-inlinesvg": "^2.3.0",
     "react-router-hash-link": "^2.4.0",
+    "recharts": "^2.1.12",
     "simple-sitemap-renderer": "^1.1.0",
     "timeago.js": "^4.0.2"
   }

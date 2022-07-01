@@ -255,6 +255,21 @@ export const ButtonText = styled(BaseButton)`
     cursor: auto;
   }
 `
+export const ButtonGreen = styled(BaseButton)`
+  background: ${({ theme }) => theme.primary6};
+  &:focus {
+    box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
+  }
+  &:hover {
+    box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
+  }
+  &:active {
+    box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
+  }
+  &:disabled {
+    background-color: ${({ theme }) => theme.bg11};
+  }
+`
 
 const ButtonConfirmedStyle = styled(BaseButton)`
   background-color: ${({ theme }) => theme.bg3};

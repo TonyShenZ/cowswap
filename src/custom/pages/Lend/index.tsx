@@ -24,11 +24,14 @@ export interface TokenMeta {
   chainId: number
   decimals: number
   logoURI: string
+  active?: boolean
+  value?: string
+  disabled?: boolean
 }
 
 export const LendCard = styled(Card)`
   position: relative;
-  margin-top: 40px;
+  margin: 40px 0px 120px;
   width: 1200px;
 
   background: rgba(255, 255, 255, 0.1);
@@ -197,8 +200,8 @@ function LendItem({ pay, get }: { pay: TokenMeta; get: TokenMeta }) {
   )
 }
 
-export function format(num: string) {
-  const newNum = parseFloat(num).toFixed(2)
+export function format(num: string, digits = 2) {
+  const newNum = parseFloat(num).toFixed(digits)
   if (newNum) {
     const nums = newNum.split('.')
     if (nums[1] && parseInt(nums[1]) > 0) {

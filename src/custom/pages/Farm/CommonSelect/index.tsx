@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 import styled, { ThemeContext } from 'styled-components/macro'
 import { Text } from 'rebass'
@@ -6,15 +6,20 @@ import Column from 'components/Column'
 import Row from 'components/Row'
 import { ButtonDropRise } from 'components/Button'
 import column from 'components/Column'
-import { TokenMeta } from '../../Lend'
-import { IconWrapper } from '@src/custom/components/AccountDetails/AccountDetailsMod'
+import { format } from '../../Lend'
+import { VaultMeta } from '..'
+import { useCurrency } from '@src/hooks/Tokens'
+import CurrencyLogo from '@src/components/CurrencyLogo'
+import { Currency } from '@uniswap/sdk-core'
 
 interface OptionProps {
-  proposals: Array<TokenMeta>
-  proposal: TokenMeta
+  proposals: Array<VaultMeta>
+  activeAddress: string
+  leverage: number
+  tokenCurrency: Currency | undefined | null
   isOpen: boolean
   afterSelect: () => void
-  onSelect: (id: number) => void
+  onSelect: (vault: VaultMeta) => void
 }
 
 const MidItem = styled(Row)<{ active?: boolean }>`
@@ -52,7 +57,6 @@ const ActionDropDown = styled(ButtonDropRise)`
   }
 `
 const SelectColumn = styled(column)`
-  width: 130px;
   position: relative;
 `
 const OptionsWrapper = styled(Row)`
@@ -86,14 +90,24 @@ const Separator = styled.div`
 export default function CommonSelect({
   proposals,
   proposal,
+  leverage,
   onSelect,
 }: {
-  proposals: Array<TokenMeta>
-  proposal: TokenMeta
-  onSelect: (index: number) => void
+  proposals: Array<VaultMeta>
+  proposal: VaultMeta
+  leverage: number
+  onSelect: (vault: VaultMeta) => void
 }) {
   const theme = useContext(ThemeContext)
+  const tokenCurrency = useCurrency(proposal.base_token)
   const [open, setOpen] = useState(false)
+
+  const borrowFee = useMemo(() => {
+    if (!proposal.daily_borrow_interest) return '0'
+    const v = -parseFloat(proposal.daily_borrow_interest) * 365 * 100 * (leverage ?? 1 - 1)
+    return v.toString()
+  }, [proposal, leverage])
+
   function clickSelect() {
     open ? setOpen(false) : setOpen(true)
   }
@@ -105,22 +119,22 @@ export default function CommonSelect({
   const afterSelect = useCallback(() => {
     setOpen(false)
   }, [])
-
   return (
     <SelectColumn>
       <SelectContainer border-color={theme.text2}>
         <ActionDropDown down={!open} onClick={clickSelect} onBlur={handleBlur}>
-          <ProposalText color={theme.text1}>
-            <IconWrapper size={16}>
-              <img src={proposal.logoURI} alt={proposal.symbol} />
-            </IconWrapper>
-            {proposal.symbol}
+          <CurrencyLogo size={'16px'} currency={tokenCurrency} />
+          <ProposalText color={theme.text1} marginX={'8px'}>
+            {tokenCurrency?.symbol}
           </ProposalText>
+          <ProposalText color={theme.text1}>{format(borrowFee)} %</ProposalText>
         </ActionDropDown>
       </SelectContainer>
       <SelectOptions
         proposals={proposals}
-        proposal={proposal}
+        activeAddress={proposal.address}
+        leverage={leverage}
+        tokenCurrency={tokenCurrency}
         isOpen={open}
         afterSelect={afterSelect}
         onSelect={onSelect}
@@ -129,16 +143,26 @@ export default function CommonSelect({
   )
 }
 
-export function SelectOptions({ proposals, proposal, isOpen, afterSelect, onSelect }: OptionProps) {
+export function SelectOptions({
+  proposals,
+  activeAddress,
+  leverage,
+  tokenCurrency,
+  isOpen,
+  afterSelect,
+  onSelect,
+}: OptionProps) {
   //const theme = useContext(ThemeContext)
   const [overflow, setOverflow] = useState('hidden')
+
   const handleClick = useCallback(
-    (id: number) => {
-      onSelect(id)
+    (vault: VaultMeta) => {
+      onSelect(vault)
       afterSelect()
     },
     [afterSelect, onSelect]
   )
+
   useEffect(() => {
     isOpen ? setOverflow('visible') : setOverflow('hidden')
   }, [isOpen])
@@ -147,13 +171,16 @@ export function SelectOptions({ proposals, proposal, isOpen, afterSelect, onSele
       {isOpen && (
         <OptionsWrapper overflow={overflow}>
           <ContentWrapper>
-            {proposals.map((p, index) => (
+            {proposals.map((p) => (
               <>
-                <MidItem key={index} active={p.address == proposal.address} onClick={() => handleClick(index)}>
-                  <IconWrapper size={16}>
-                    <img src={p.logoURI} alt={p.symbol} />
-                  </IconWrapper>
-                  <OptionText fontWeight={500}>{p.symbol}</OptionText>
+                <MidItem key={p.address} active={p.address == activeAddress} onClick={() => handleClick(p)}>
+                  <CurrencyLogo size={'16px'} currency={tokenCurrency} />
+                  <OptionText fontWeight={500} marginX={'8px'}>
+                    {tokenCurrency?.symbol}
+                  </OptionText>
+                  <OptionText>
+                    {format(String(-parseFloat(p.daily_borrow_interest ?? '0') * 365 * 100 * (leverage ?? 1 - 1)))} %
+                  </OptionText>
                 </MidItem>
                 <Separator />
               </>
