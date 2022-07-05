@@ -5,6 +5,7 @@ import { Trans } from '@lingui/macro'
 import { Label, Radio } from '@rebass/forms'
 import { Box, Flex, Text } from 'rebass'
 import { Search } from 'react-feather'
+import { formatEther, commify } from '@ethersproject/units'
 import {
   ApyText,
   format,
@@ -27,8 +28,13 @@ import CommonSelect from '@src/custom/pages/Farm/CommonSelect'
 import { InputPanelWrapper } from '../Lend/LendDepPage'
 
 import { get } from '@src/custom/utils/request'
+import { MyPosition, PositionMeta } from '@src/custom/api/apollo/hooks'
+import { useActiveWeb3React } from '@src/hooks/web3'
+import { usePancakeswapV2WorkerContract } from '@src/custom/hooks/useContract'
 
 import Farms from 'constants/tokenLists/farm-default.tokenlist.json'
+import { useSingleCallResult } from '@src/state/multicall/hooks'
+
 // import { useV2FactoryContract } from '@src/custom/hooks/useContract'
 // import { useSingleCallResult } from '@src/state/multicall/hooks'
 export interface VaultMeta {
@@ -55,9 +61,9 @@ export interface PoolMeta {
 }
 
 const RadioComponents = styled(Radio)`
-  & > input[type='radio' i] {
-    background-color: transparent;
-  }
+  /* & ~ svg {
+    color: ${({ theme }) => theme.primary8} !important;
+  } */
 `
 export const FarmText = styled(Text)`
   line-height: 16px;
@@ -150,21 +156,12 @@ export const InputComponents = styled.input`
 `
 
 export default function Farm() {
+  const { account } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
-  const myPosition = false
-
-  // const factoryContract = useV2FactoryContract('0x768ACbc5886a39817e1197EedeD9f075fFBe3389')
-  // const pair = useSingleCallResult(factoryContract, 'getPair', [
-  //   '0xf5EB09f8a4bBE663b044f2eC10dE5237007925c8',
-  //   '0xAC8B36d26f704c43cA3AAC6682083786eB83cf38',
-  // ])
-  // 0x07Ff8D9C794Eda4D13522552B3DB676134c89623
-  // 0x07Ff8D9C794Eda4D13522552B3DB676134c89623
-  // console.log(pair)
-
+  const [vaultList, setVaultList] = useState([])
+  const positionList = MyPosition(account)
   const [dexIndex, setDexIndex] = useState(0)
   const dexList = useMemo(() => ['All', 'PancakeSwap', 'HashDEX'], [])
-
   const handleSelectDex = useCallback(
     (idx: number) => {
       setDexIndex(idx)
@@ -182,18 +179,27 @@ export default function Farm() {
     [setAssetsIndex]
   )
 
+  const getVaultList = useCallback(async () => {
+    const { result } = await get('/vault/list')
+    setVaultList(result)
+  }, [setVaultList])
+
+  useEffect(() => {
+    getVaultList()
+  }, [getVaultList])
+
   return (
     <LendCard>
       <LendBackground background="rgba(132, 251, 186, 0.2)" />
       <AutoColumn gap="32px">
-        {myPosition && (
+        {positionList && (
           <MyPostionsWrapper>
             <Row>
               <TYPE.mediumHeader width={'auto'}>My Positons</TYPE.mediumHeader>
               <Flex marginLeft={'25px'}>
                 <Box>
-                  <Label al>
-                    <RadioComponents name="color" id="active" value="active" />
+                  <Label>
+                    <RadioComponents name="color" id="active" value={'active'} defaultChecked />
                     <Text>Active</Text>
                   </Label>
                 </Box>
@@ -227,7 +233,10 @@ export default function Farm() {
                   <FarmText>Safety Buffer</FarmText>
                 </LendHederWrap>
               </LendHeader>
-              <PositonsItem />
+              {positionList.map((x) => (
+                <PositonsItem key={x.id} positionItem={x} vault={vaultList} />
+              ))}
+
               <Line opacity={0.15} />
             </AutoColumn>
           </MyPostionsWrapper>
@@ -312,7 +321,7 @@ export default function Farm() {
               <LendHederWrap></LendHederWrap>
             </FarmHeader>
             {Farms.pools.map((pool) => (
-              <AvailableItem key={pool.name} pool={pool} />
+              <AvailableItem key={pool.name} pool={pool} vault={vaultList} />
             ))}
           </AutoColumn>
         </AvailableWrapper>
@@ -321,11 +330,8 @@ export default function Farm() {
   )
 }
 
-function AvailableItem({ pool }: { pool: PoolMeta }) {
+function AvailableItem({ pool, vault }: { pool: PoolMeta; vault: VaultMeta[] }) {
   const [leverage, setLeverage] = useState(pool.leverage)
-
-  const [vaultConfig, setVaultConfig] = useState([])
-
   const [proposal, setProposal] = useState<VaultMeta>()
 
   const handleProposal = useCallback(
@@ -334,12 +340,6 @@ function AvailableItem({ pool }: { pool: PoolMeta }) {
     },
     [setProposal]
   )
-
-  const getVaultList = useCallback(async () => {
-    const { result } = await get('/vault/list')
-    setVaultConfig(result)
-    setProposal(result[0])
-  }, [setVaultConfig])
 
   // Minimum correction when out of focus
   const handleLeverageValueInputBlur = useCallback(() => {
@@ -366,8 +366,8 @@ function AvailableItem({ pool }: { pool: PoolMeta }) {
   }, [leverage, proposal])
 
   useEffect(() => {
-    getVaultList()
-  }, [getVaultList])
+    setProposal(vault ? vault[0] : undefined)
+  }, [vault])
 
   return (
     <FarmItemWrapper>
@@ -397,8 +397,8 @@ function AvailableItem({ pool }: { pool: PoolMeta }) {
         </RowBetween>
         <RowBetween>
           <FarmText fontSize={14}>Borrowing Income:</FarmText>
-          {vaultConfig && vaultConfig.length > 0 && proposal ? (
-            <CommonSelect proposals={vaultConfig} leverage={leverage} proposal={proposal} onSelect={handleProposal} />
+          {vault && vault.length > 0 && proposal ? (
+            <CommonSelect proposals={vault} leverage={leverage} proposal={proposal} onSelect={handleProposal} />
           ) : null}
         </RowBetween>
         <RowBetween>
@@ -433,30 +433,37 @@ function AvailableItem({ pool }: { pool: PoolMeta }) {
   )
 }
 
-function PositonsItem() {
+function PositonsItem({ positionItem, vault }: { positionItem: PositionMeta; vault: VaultMeta[] }) {
+  const { positionId, worker } = positionItem
+  const workerContract = usePancakeswapV2WorkerContract(worker.id)
+
+  const positionValue = useSingleCallResult(workerContract, 'health', ['8'])?.result?.[0]
+
+  const vaultObj = useMemo(() => {
+    if (!vault || !worker.id) return
+    const obj = vault.find((x) => x.workers.map((w) => w.address === worker.id))
+    return obj
+  }, [worker.id, vault])
+
   return (
     <LendItemWrapper>
       <RowFixed>
         <IconWrapper size={32}>{/* <img src={pay.logoURI} alt={pay.symbol} /> */}</IconWrapper>
         <AutoColumn>
-          <FarmText>BNB-USDT</FarmText>
+          {/* <FarmText>{pair}</FarmText> */}
           <FarmText fontSize={14}> Pancake Swap</FarmText>
         </AutoColumn>
       </RowFixed>
       <RowFixed>
-        <FarmText>320.12 USDT</FarmText>
+        <FarmText>{format(formatEther(positionValue ?? 0))} USDT</FarmText>
+      </RowFixed>
+      <RowFixed>{/* <FarmText>{format(formatEther(debt))} USDT</FarmText> */}</RowFixed>
+      <RowFixed>{/* <FarmText>{format(formatEther(equity))} USDT</FarmText> */}</RowFixed>
+      <RowFixed>
+        <FarmText>-%</FarmText>
       </RowFixed>
       <RowFixed>
-        <FarmText>320.12 USDT</FarmText>
-      </RowFixed>
-      <RowFixed>
-        <FarmText>320.12 USDT</FarmText>
-      </RowFixed>
-      <RowFixed>
-        <FarmText>32.92%</FarmText>
-      </RowFixed>
-      <RowFixed>
-        <FarmText>9%</FarmText>
+        <FarmText>-%</FarmText>
       </RowFixed>
       <AutoColumn gap="5px" justify={'center'}>
         <ButtonFarmPrimary padding={'8px'} width={'120px'}>

@@ -1,7 +1,7 @@
 import { isAddress } from '@src/custom/utils'
 import { useCallback, useEffect, useState } from 'react'
-import { blockClient, client } from './client'
-import { USER_TRANSACTIONS, FILTERED_TRANSACTIONS, BLOCK_TIME, HEADER_QUOTES } from './queries'
+import { blockClient, client, positionClient } from './client'
+import { USER_TRANSACTIONS, FILTERED_TRANSACTIONS, BLOCK_TIME, HEADER_QUOTES, QUERY_POSITION } from './queries'
 
 interface BasicData {
   token0?: {
@@ -14,6 +14,15 @@ interface BasicData {
     name: string
     symbol: string
   }
+}
+
+export interface PositionMeta {
+  id: string
+  worker: {
+    id: string
+  }
+  positionId: string
+  debtShare: string
 }
 
 const TOKEN_OVERRIDES: { [address: string]: { name: string; symbol: string } } = {
@@ -218,4 +227,30 @@ export function usePairData(pairAddress: string) {
   }, [pairAddress])
 
   return pairData
+}
+
+export function MyPosition(address: string | null | undefined) {
+  const [position, setPosition] = useState<PositionMeta[]>()
+  useEffect(() => {
+    async function fetchData(address: string) {
+      try {
+        const result = await positionClient.query({
+          query: QUERY_POSITION,
+          variables: {
+            owner: address.toLocaleLowerCase(),
+          },
+          fetchPolicy: 'no-cache',
+        })
+        if (result?.data) {
+          setPosition(result?.data?.positions)
+        }
+      } catch (e) {
+        setPosition(undefined)
+      }
+    }
+    if (!position && address) {
+      fetchData(address)
+    }
+  }, [position, address])
+  return position
 }

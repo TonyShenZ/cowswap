@@ -22,3 +22,10 @@ export const blockClient = new ApolloClient({
   }),
   cache: new InMemoryCache(),
 })
+
+export const positionClient = new ApolloClient({
+  link: new HttpLink({
+    uri: 'https://api.thegraph.com/subgraphs/name/ivan-gao23/vault19',
+  }),
+  cache: new InMemoryCache(),
+})

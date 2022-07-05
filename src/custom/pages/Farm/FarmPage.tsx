@@ -33,6 +33,7 @@ import { useTotalSupply } from '@src/hooks/useTotalSupply'
 import { CurrencyAmount } from '@uniswap/sdk-core'
 import { Trans } from '@lingui/macro'
 import { get } from '@src/custom/utils/request'
+
 // import { Simulator } from './Simulator'
 
 import Farms from 'constants/tokenLists/farm-default.tokenlist.json'
@@ -207,7 +208,6 @@ export default function FarmPage({
 
   const handleAmountValueInput = useCallback(
     (index: number, value: string) => {
-      // debugger
       if (!borrowTokens) return
       const obj = borrowTokens.concat()
       obj[index].value = value
@@ -251,15 +251,19 @@ export default function FarmPage({
     if (!leverageValue) handleLeverageValueInput('1.00')
   }, [leverageValue, handleLeverageValueInput])
 
-  const FarmButtonStatus = useMemo(() => {
+  const farmButtonStatus = useMemo(() => {
     if (!tokensBalance[0]?.result || !borrowTokens) return true
     const providedTokenValue = borrowTokens.find((x) => !x.active)?.value
     const providedTokenBalance = tokensBalance[0].result?.[0]
 
-    if (parseFloat(providedTokenValue ?? '0') > parseFloat(formatEther(providedTokenBalance ?? '0'))) {
-      return true
-    } else {
+    if (
+      providedTokenValue &&
+      providedTokenBalance &&
+      parseFloat(providedTokenValue) <= parseFloat(formatEther(providedTokenBalance))
+    ) {
       return false
+    } else {
+      return true
     }
   }, [tokensBalance, borrowTokens])
 
@@ -333,14 +337,14 @@ export default function FarmPage({
   }, [approveCallback, setApproving])
 
   const openPosition = useCallback(() => {
-    if (!debtValue?.providedTokenAmount) return
+    if (!debtValue?.providedTokenAmount || !debtValue.debtTotalValue) return
     setPosition(true)
     vaultContract
       .work(
         0,
         '0x44B24138e620a2f24Aa82C66508F0D69337881c1',
         Zero,
-        parseEther(String(debtValue.providedTokenAmount)),
+        parseEther(String(debtValue.debtTotalValue)),
         0,
         defaultAbiCoder.encode(
           ['address', 'bytes'],
@@ -351,16 +355,13 @@ export default function FarmPage({
               [parseEther(String(debtValue.providedTokenAmount)), parseEther('0')]
             ),
           ]
-        ),
-        {
-          gasLimit: 20_000_000,
-        }
+        )
       )
       .then(async (res) => {
         await res
           .wait()
           .then(() => setPosition(false))
-          .then(() => setPosition(false))
+          .catch(() => setPosition(false))
       })
       .catch((err) => {
         console.log(err)
@@ -368,15 +369,15 @@ export default function FarmPage({
       })
   }, [vaultContract, debtValue])
 
-  useEffect(() => {
-    return () => {
-      if (borrowTokens) {
-        const obj = borrowTokens.concat()
-        obj.map((x) => (x.value = ''))
-        setBorrowTokens(obj)
-      }
-    }
-  }, [borrowTokens, setBorrowTokens])
+  // useEffect(() => {
+  //   return () => {
+  //     if (borrowTokens) {
+  //       const obj = borrowTokens.concat()
+  //       obj.map((x) => (x.value = ''))
+  //       setBorrowTokens(obj)
+  //     }
+  //   }
+  // }, [borrowTokens, setBorrowTokens])
 
   const [vaultList, setVaultList] = useState<VaultMeta[]>([])
 
@@ -611,7 +612,7 @@ export default function FarmPage({
                 )}
               </ButtonFarm>
             ) : (
-              <ButtonFarm marginRight={32} onClick={openPosition} disabled={FarmButtonStatus || positioning}>
+              <ButtonFarm marginRight={32} onClick={openPosition} disabled={farmButtonStatus || positioning}>
                 {positioning ? <Dots>Farming</Dots> : 'Farm'}
               </ButtonFarm>
             )}

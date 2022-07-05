@@ -12,7 +12,15 @@ import { getContract } from 'utils'
 import ERC20_ABI from 'abis/erc20.json'
 import ERC20_BYTES32_ABI from 'abis/erc20_bytes32.json'
 
-import { GPv2Settlement, Erc20, VCow, Vault, ConfigurableInterestVaultConfig, IPancakeFactory } from 'abis/types'
+import {
+  GPv2Settlement,
+  Erc20,
+  VCow,
+  Vault,
+  ConfigurableInterestVaultConfig,
+  IPancakeFactory,
+  PancakeswapV2Worker,
+} from 'abis/types'
 import GPv2_SETTLEMENT_ABI from 'abis/GPv2Settlement.json'
 import V_COW_ABI from 'abis/vCow.json'
 
@@ -22,6 +30,7 @@ import VAULTCONFIG_ABI from 'abis/ConfigurableInterestVaultConfig.json'
 
 // Farm
 import V2_FACTORY_ABI from 'abis/IPancakeFactory.json'
+import V2_PANCAKE_WORKER_ABI from 'abis/PancakeswapV2Worker.json'
 
 export * from '@src/hooks/useContract'
 
@@ -122,4 +131,8 @@ export function useVaultConfigContract() {
 
 export function useV2FactoryContract(tokenAddress?: string) {
   return useContract<IPancakeFactory>(tokenAddress, V2_FACTORY_ABI, false) as IPancakeFactory
+}
+
+export function usePancakeswapV2WorkerContract(tokenAddress?: string) {
+  return useContract<PancakeswapV2Worker>(tokenAddress, V2_PANCAKE_WORKER_ABI, false) as PancakeswapV2Worker
 }
