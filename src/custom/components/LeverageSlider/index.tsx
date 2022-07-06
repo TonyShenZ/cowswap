@@ -55,7 +55,7 @@ export default function LeverageSlider({
   }, [max])
 
   return (
-    <SliderWrapper min={1} max={3} step={0.01} defaultValue={defaultValue} value={value} onChange={change}>
+    <SliderWrapper min={1} max={max} step={0.01} defaultValue={defaultValue} value={value} onChange={change}>
       {markers.map((x) => (
         <SliderMarkerWrapper value={x} key={x}>
           <MarketSpan fontSize={14}>{x.toFixed(2)}</MarketSpan>

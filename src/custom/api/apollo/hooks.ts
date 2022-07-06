@@ -229,28 +229,20 @@ export function usePairData(pairAddress: string) {
   return pairData
 }
 
-export function MyPosition(address: string | null | undefined) {
-  const [position, setPosition] = useState<PositionMeta[]>()
-  useEffect(() => {
-    async function fetchData(address: string) {
-      try {
-        const result = await positionClient.query({
-          query: QUERY_POSITION,
-          variables: {
-            owner: address.toLocaleLowerCase(),
-          },
-          fetchPolicy: 'no-cache',
-        })
-        if (result?.data) {
-          setPosition(result?.data?.positions)
-        }
-      } catch (e) {
-        setPosition(undefined)
-      }
+export async function fetchMyPositionData(address: string) {
+  try {
+    const result = await positionClient.query({
+      query: QUERY_POSITION,
+      variables: {
+        owner: address.toLocaleLowerCase(),
+      },
+      fetchPolicy: 'no-cache',
+    })
+    if (result?.data) {
+      return result?.data?.positions
     }
-    if (!position && address) {
-      fetchData(address)
-    }
-  }, [position, address])
-  return position
+  } catch (e) {
+    console.log(e)
+    return []
+  }
 }

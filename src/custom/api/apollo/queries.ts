@@ -126,7 +126,7 @@ export const HEADER_QUOTES = gql`
 // 查询开仓
 export const QUERY_POSITION = gql`
   query ($owner: String!) {
-    positions(where: { owner: $owner }) {
+    positions(where: { owner: $owner, debtShare_gt: 0 }) {
       id
       worker {
         id

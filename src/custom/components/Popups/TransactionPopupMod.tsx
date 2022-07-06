@@ -22,7 +22,7 @@ export default function TransactionPopup({
   success,
   summary,
 }: {
-  hash: string
+  hash: string | undefined
   success?: boolean
   summary?: string | JSX.Element
 }) {
@@ -36,7 +36,7 @@ export default function TransactionPopup({
         {success ? <CheckCircle color={theme.green1} size={24} /> : <AlertCircle color={theme.red1} size={24} />}
       </div>
       <AutoColumn gap="8px">
-        {!summary || typeof summary === 'string' ? (
+        {hash && (!summary || typeof summary === 'string') ? (
           <TYPE.body fontWeight={500} style={{ whiteSpace: 'pre-wrap' }}>
             {summary ?? 'Hash: ' + hash.slice(0, 8) + '...' + hash.slice(58, 65)}
           </TYPE.body>
@@ -44,7 +44,7 @@ export default function TransactionPopup({
           summary
         )}
 
-        {chainId && (
+        {chainId && hash && (
           <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
             View on Explorer
           </ExternalLink>

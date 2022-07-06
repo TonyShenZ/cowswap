@@ -12,7 +12,7 @@ export type PopupContent = TxPopupContent | MetaTxPopupContent
 
 export type TxPopupContent = {
   txn: {
-    hash: string
+    hash?: string
     success?: boolean
     summary?: string
   }

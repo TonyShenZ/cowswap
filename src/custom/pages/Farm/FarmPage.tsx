@@ -18,7 +18,7 @@ import { Erc20__factory } from '@src/abis/types'
 import { useActiveWeb3React } from '@src/hooks/web3'
 import Input from '@src/components/NumericalInput'
 
-import { usePairContract, useVaultContract } from '@src/custom/hooks/useContract'
+import { usePairContract, useVaultConfigContract, useVaultContract } from '@src/custom/hooks/useContract'
 import { isAddress } from '@src/custom/utils'
 import { Box, Text } from 'rebass'
 import LeverageSlider from '@src/custom/components/LeverageSlider'
@@ -26,7 +26,7 @@ import LeverageSlider from '@src/custom/components/LeverageSlider'
 import { ButtonOutlined, ButtonGreen } from '@src/components/Button'
 
 import { Dots } from '@src/pages/Pool/styleds'
-import { useWalletModalToggle } from '@src/custom/state/application/hooks'
+import { useAddPopup, useWalletModalToggle } from '@src/custom/state/application/hooks'
 import { ApprovalState, useApproveCallback } from '@src/hooks/useApproveCallback'
 import { useCurrency } from '@src/hooks/Tokens'
 import { useTotalSupply } from '@src/hooks/useTotalSupply'
@@ -133,12 +133,25 @@ const NewAutoColumn = styled(AutoColumn)`
 
 export default function FarmPage({
   match: {
-    params: { configKey, leverage },
+    params: { configKey, leverage, positionId },
   },
-}: RouteComponentProps<{ configKey: string; leverage: string }>) {
+}: RouteComponentProps<{ configKey: string; leverage: string; positionId: string }>) {
   const theme = useContext(ThemeContext)
   const { account } = useActiveWeb3React()
+  const addPopup = useAddPopup()
   const vaultContract = useVaultContract('0xdfc169de2454CB5b925034433742956c416EE6C1', true)
+
+  const vaultConfigContract = useVaultConfigContract()
+
+  const minDebtSize = useSingleCallResult(vaultConfigContract, 'minDebtSize', undefined)?.result?.[0]
+
+  // const workFactor = useSingleCallResult(vaultConfigContract, 'workFactor', [
+  //   '0x44B24138e620a2f24Aa82C66508F0D69337881c1',
+  //   0,
+  // ])?.result?.[0]
+
+  // console.log(workFactor)
+
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
 
   const poolInfo: PoolMeta | undefined = useMemo(() => {
@@ -162,11 +175,10 @@ export default function FarmPage({
   const pair = usePairContract(validatedAddress ? validatedAddress : undefined)
 
   // get token addresses from pair contract
-  //   const token0AddressCallState = useSingleCallResult(pair, 'token0', undefined, NEVER_RELOAD)
-  //   console.log(token0AddressCallState)
+  // const token0AddressCallState = useSingleCallResult(pair, 'token0', undefined, NEVER_RELOAD)
 
-  //   const token0Address = token0AddressCallState?.result?.[0]
-  //   const token1Address = useSingleCallResult(pair, 'token1', undefined, NEVER_RELOAD)?.result?.[0]
+  // const token0Address = token0AddressCallState?.result?.[0]
+  // const token1Address = useSingleCallResult(pair, 'token1', undefined, NEVER_RELOAD)?.result?.[0]
 
   // get tokens
   //   const token0 = useToken(token0Address)
@@ -197,12 +209,10 @@ export default function FarmPage({
     [reserve0Raw, reserve1Raw]
   )
 
-  const reserve1 = useMemo(
-    () => (reserve1Raw ? reserve1Raw.mul(WeiPerEther).div(reserve0Raw) : undefined),
-    [reserve0Raw, reserve1Raw]
-  )
-
-  // console.log(reserve0 && formatEther(reserve0), reserve1 && formatEther(reserve1))
+  // const reserve1 = useMemo(
+  //   () => (reserve1Raw ? reserve1Raw.mul(WeiPerEther).div(reserve0Raw) : undefined),
+  //   [reserve0Raw, reserve1Raw]
+  // )
 
   const [borrowTokens, setBorrowTokens] = useState(poolInfo?.tokenList)
 
@@ -269,7 +279,7 @@ export default function FarmPage({
 
   // Assets Borrowed(Debt Value)
   const debtValue = useMemo(() => {
-    if (!borrowTokens || !leverageValue || !reserve1 || !reserve0) return
+    if (!borrowTokens || !leverageValue || !reserve0) return
     // borrowed toekn
     const borrowedToken = borrowTokens.find((x) => x.active)
     // Number of tonken provided
@@ -279,12 +289,14 @@ export default function FarmPage({
       const average = (providedTokenAmount * parseFloat(leverageValue)) / 2
       const t1 = average % providedTokenAmount ? average % providedTokenAmount : average
       const t2 = average % 0 ? average % 0 : average
-      const t1USD = parseFloat(formatEther(reserve1)) * t1
-      const t2USD = parseFloat(formatEther(reserve1)) * t2
+      const t1USD = parseFloat(formatEther(reserve0)) * t1
+      const t2USD = parseFloat(formatEther(reserve0)) * t2
 
-      const debtTotalValue = t1USD + t2USD
+      const debtTotalValue =
+        (providedTokenAmount * parseFloat(leverageValue) - providedTokenAmount) * parseFloat(formatEther(reserve0))
 
-      const assetsValue = debtTotalValue - t1USD
+      const totalValue = t1USD + t2USD
+      const assetsValue = totalValue - t1USD
 
       const positionValue = average
 
@@ -306,7 +318,7 @@ export default function FarmPage({
       borrowedToken,
       providedToken,
     }
-  }, [reserve1, reserve0, borrowTokens, leverageValue])
+  }, [reserve0, borrowTokens, leverageValue])
 
   const [approving, setApproving] = useState(false)
   const [positioning, setPosition] = useState(false)
@@ -337,37 +349,61 @@ export default function FarmPage({
   }, [approveCallback, setApproving])
 
   const openPosition = useCallback(() => {
-    if (!debtValue?.providedTokenAmount || !debtValue.debtTotalValue) return
-    setPosition(true)
-    vaultContract
-      .work(
-        0,
-        '0x44B24138e620a2f24Aa82C66508F0D69337881c1',
-        Zero,
-        parseEther(String(debtValue.debtTotalValue)),
-        0,
-        defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [
-            '0x7388cdd2b9F678550FBDba03F0b2289BbbDE1c34',
-            defaultAbiCoder.encode(
-              ['uint256', 'uint256'],
-              [parseEther(String(debtValue.providedTokenAmount)), parseEther('0')]
-            ),
-          ]
+    if (!debtValue?.providedTokenAmount || !debtValue.debtTotalValue || !minDebtSize) return
+    if (debtValue.debtTotalValue > parseFloat(formatEther(minDebtSize))) {
+      setPosition(true)
+      vaultContract
+        .work(
+          positionId ? positionId : 0,
+          '0x44B24138e620a2f24Aa82C66508F0D69337881c1',
+          Zero,
+          parseEther(String(debtValue.debtTotalValue)),
+          0,
+          defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [
+              '0x7388cdd2b9F678550FBDba03F0b2289BbbDE1c34',
+              defaultAbiCoder.encode(
+                ['uint256', 'uint256'],
+                [parseEther(String(debtValue.providedTokenAmount)), parseEther('0')]
+              ),
+            ]
+          )
         )
+        .then(async (res) => {
+          await res
+            .wait()
+            .then((value) => {
+              addPopup(
+                {
+                  txn: {
+                    hash: value.transactionHash,
+                    success: value.status ? true : false,
+                    summary: `Successfully ${positionId == '0' ? 'opened' : 'adjust'}`,
+                  },
+                },
+                value.transactionHash
+              )
+            })
+            .finally(() => setPosition(false))
+        })
+        .catch((err) => {
+          console.log(err)
+          setPosition(false)
+        })
+    } else {
+      addPopup(
+        {
+          txn: {
+            hash: undefined,
+            success: false,
+            summary: `Debt Value must be greater than ${format(formatEther(minDebtSize))}`,
+          },
+        },
+        undefined
       )
-      .then(async (res) => {
-        await res
-          .wait()
-          .then(() => setPosition(false))
-          .catch(() => setPosition(false))
-      })
-      .catch((err) => {
-        console.log(err)
-        setPosition(false)
-      })
-  }, [vaultContract, debtValue])
+    }
+  }, [vaultContract, minDebtSize, debtValue, positionId, addPopup])
 
   // useEffect(() => {
   //   return () => {
@@ -431,7 +467,7 @@ export default function FarmPage({
       {poolInfo && borrowTokens ? (
         <AutoColumn gap="24px">
           <TYPE.mediumHeader>
-            Farm {poolInfo.name} {replaceSource(poolInfo.source)} pool
+            {positionId == '0' ? 'Farm' : 'Adjust'} {poolInfo.name} {replaceSource(poolInfo.source)} pool
           </TYPE.mediumHeader>
           <Line opacity={0.5} />
           <RowBetween>
@@ -455,7 +491,7 @@ export default function FarmPage({
                 <TYPE.body color={theme.text5} fontWeight={700} fontSize={14}>
                   {t.symbol == 'USDC'
                     ? `1 ${t.symbol} = 1 ${t.symbol}`
-                    : `1 ${t.symbol} = ${reserve1 ? format(formatEther(reserve1)) : '-'} USDC`}
+                    : `1 ${t.symbol} = ${reserve0 ? format(formatEther(reserve0)) : '-'} USDC`}
                 </TYPE.body>
               </BalanceWrapper>
             ))}
@@ -584,14 +620,17 @@ export default function FarmPage({
               </RowBetween>
             </SummaryCardChildren>
           </SummaryCard>
-          <SummaryCard>
-            <NewAutoColumn gap="24px">
-              <TYPE.mediumHeader>{poolInfo.name} Farming Simulator</TYPE.mediumHeader>
-              {/* <Row height={600}>
+          {positionId == '0' ? (
+            <SummaryCard>
+              <NewAutoColumn gap="24px">
+                <TYPE.mediumHeader>{poolInfo.name} Farming Simulator</TYPE.mediumHeader>
+                {/* <Row height={600}>
                 <Simulator />
               </Row> */}
-            </NewAutoColumn>
-          </SummaryCard>
+              </NewAutoColumn>
+            </SummaryCard>
+          ) : null}
+
           <ButtonWrapper>
             {!account ? (
               <ButtonFarm marginRight={32} onClick={toggleWalletModal}>
@@ -613,7 +652,18 @@ export default function FarmPage({
               </ButtonFarm>
             ) : (
               <ButtonFarm marginRight={32} onClick={openPosition} disabled={farmButtonStatus || positioning}>
-                {positioning ? <Dots>Farming</Dots> : 'Farm'}
+                {positionId == '0' ? (
+                  positioning ? (
+                    <Dots>Farming</Dots>
+                  ) : (
+                    'Farm'
+                  )
+                ) : positioning ? (
+                  <Dots>Adjust Farming</Dots>
+                ) : (
+                  'Adjust Farm'
+                )}
+                {}
               </ButtonFarm>
             )}
             <SimulatorButton>Simulator</SimulatorButton>

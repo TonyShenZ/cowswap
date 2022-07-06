@@ -15,7 +15,7 @@ const RowNoFlex = styled(AutoRow)`
   flex-wrap: nowrap;
 `
 
-export default function TransactionPopup({ hash }: { hash: string }) {
+export default function TransactionPopup({ hash }: { hash: string | undefined }) {
   const { chainId } = useActiveWeb3React()
 
   const tx = useTransaction(hash)
@@ -33,7 +33,7 @@ export default function TransactionPopup({ hash }: { hash: string }) {
         <TYPE.body fontWeight={500}>
           <TransactionSummary info={tx.info} />
         </TYPE.body>
-        {chainId && (
+        {chainId && hash && (
           <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
             View on Explorer
           </ExternalLink>

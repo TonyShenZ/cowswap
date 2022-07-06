@@ -5,7 +5,12 @@ import { Trans } from '@lingui/macro'
 import { Label, Radio } from '@rebass/forms'
 import { Box, Flex, Text } from 'rebass'
 import { Search } from 'react-feather'
-import { formatEther, commify } from '@ethersproject/units'
+import { formatEther, parseEther } from '@ethersproject/units'
+import { MaxUint256 } from '@ethersproject/constants'
+import { defaultAbiCoder } from 'ethers/lib/utils'
+import { useAddPopup } from '@src/custom/state/application/hooks'
+import { Dots } from '@src/pages/Pool/styleds'
+
 import {
   ApyText,
   format,
@@ -28,13 +33,15 @@ import CommonSelect from '@src/custom/pages/Farm/CommonSelect'
 import { InputPanelWrapper } from '../Lend/LendDepPage'
 
 import { get } from '@src/custom/utils/request'
-import { MyPosition, PositionMeta } from '@src/custom/api/apollo/hooks'
+import { fetchMyPositionData, PositionMeta } from '@src/custom/api/apollo/hooks'
 import { useActiveWeb3React } from '@src/hooks/web3'
-import { usePancakeswapV2WorkerContract } from '@src/custom/hooks/useContract'
+import { usePancakeswapV2WorkerContract, useVaultConfigContract, useVaultContract } from '@src/custom/hooks/useContract'
+
+import { useSingleCallResult } from '@src/state/multicall/hooks'
+import useInterval from '@src/hooks/useInterval'
+import { useToken } from '@src/hooks/Tokens'
 
 import Farms from 'constants/tokenLists/farm-default.tokenlist.json'
-import { useSingleCallResult } from '@src/state/multicall/hooks'
-
 // import { useV2FactoryContract } from '@src/custom/hooks/useContract'
 // import { useSingleCallResult } from '@src/state/multicall/hooks'
 export interface VaultMeta {
@@ -159,7 +166,8 @@ export default function Farm() {
   const { account } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
   const [vaultList, setVaultList] = useState([])
-  const positionList = MyPosition(account)
+  const [positionList, setPositionList] = useState<PositionMeta[]>([])
+
   const [dexIndex, setDexIndex] = useState(0)
   const dexList = useMemo(() => ['All', 'PancakeSwap', 'HashDEX'], [])
   const handleSelectDex = useCallback(
@@ -184,6 +192,14 @@ export default function Farm() {
     setVaultList(result)
   }, [setVaultList])
 
+  const getPosition = useCallback(async () => {
+    if (!account) return
+    const data = await fetchMyPositionData(account)
+    setPositionList(data)
+  }, [account])
+
+  useInterval(getPosition, account ? 8000 : null)
+
   useEffect(() => {
     getVaultList()
   }, [getVaultList])
@@ -192,7 +208,7 @@ export default function Farm() {
     <LendCard>
       <LendBackground background="rgba(132, 251, 186, 0.2)" />
       <AutoColumn gap="32px">
-        {positionList && (
+        {positionList && positionList.length > 0 ? (
           <MyPostionsWrapper>
             <Row>
               <TYPE.mediumHeader width={'auto'}>My Positons</TYPE.mediumHeader>
@@ -240,7 +256,7 @@ export default function Farm() {
               <Line opacity={0.15} />
             </AutoColumn>
           </MyPostionsWrapper>
-        )}
+        ) : null}
         <AvailableWrapper>
           <AutoColumn gap="24px">
             <TYPE.mediumHeader>
@@ -425,7 +441,7 @@ function AvailableItem({ pool, vault }: { pool: PoolMeta; vault: VaultMeta[] }) 
         />
       </RowFixed>
       <AutoColumn gap="5px" justify={'center'}>
-        <ButtonFarmPrimary padding={'8px'} width={'120px'} as={Link} to={`/farm/${pool.configKey}/${leverage}`}>
+        <ButtonFarmPrimary padding={'8px'} width={'120px'} as={Link} to={`/farm/${pool.configKey}/${leverage}/0`}>
           Farm
         </ButtonFarmPrimary>
       </AutoColumn>
@@ -434,10 +450,44 @@ function AvailableItem({ pool, vault }: { pool: PoolMeta; vault: VaultMeta[] }) 
 }
 
 function PositonsItem({ positionItem, vault }: { positionItem: PositionMeta; vault: VaultMeta[] }) {
-  const { positionId, worker } = positionItem
+  const { positionId, debtShare, worker } = positionItem
+  const addPopup = useAddPopup()
   const workerContract = usePancakeswapV2WorkerContract(worker.id)
+  const vaultContract = useVaultContract('0xdfc169de2454CB5b925034433742956c416EE6C1', true)
 
-  const positionValue = useSingleCallResult(workerContract, 'health', ['8'])?.result?.[0]
+  const vaultConfigContract = useVaultConfigContract()
+
+  const killFactor = useSingleCallResult(vaultConfigContract, 'killFactor', [worker.id, '0'])?.result?.[0]
+
+  const positionValue = useSingleCallResult(workerContract, 'health', [positionId])?.result?.[0]
+
+  const baseTokenAds = useSingleCallResult(workerContract, 'baseToken', undefined)?.result?.[0]
+  const farmingTokenAds = useSingleCallResult(workerContract, 'farmingToken', undefined)?.result?.[0]
+
+  const baseToken = useToken(baseTokenAds)
+  const farmingToken = useToken(farmingTokenAds)
+
+  const configKey = useMemo(() => {
+    if (!worker.id) return
+    const key = Farms.pools.map((p) => p && p.tokenList.find((t) => t.worker == worker.id) && p.configKey)
+    return key
+  }, [worker.id])
+
+  const equityValue = useMemo(() => {
+    if (!positionValue || !debtShare) return
+    return positionValue.sub(debtShare)
+  }, [debtShare, positionValue])
+
+  const safetyBuffer = useMemo(() => {
+    if (!positionValue || !killFactor || !debtShare) return
+    const val = (killFactor / 10000 - parseFloat(debtShare) / parseFloat(positionValue)) * 100
+    return val.toString()
+  }, [killFactor, positionValue, debtShare])
+
+  const leverage = useMemo(() => {
+    if (!positionValue || !equityValue) return
+    return Math.floor(positionValue.div(equityValue))
+  }, [equityValue, positionValue])
 
   const vaultObj = useMemo(() => {
     if (!vault || !worker.id) return
@@ -445,34 +495,134 @@ function PositonsItem({ positionItem, vault }: { positionItem: PositionMeta; vau
     return obj
   }, [worker.id, vault])
 
-  return (
-    <LendItemWrapper>
-      <RowFixed>
-        <IconWrapper size={32}>{/* <img src={pay.logoURI} alt={pay.symbol} /> */}</IconWrapper>
-        <AutoColumn>
-          {/* <FarmText>{pair}</FarmText> */}
-          <FarmText fontSize={14}> Pancake Swap</FarmText>
+  const currentApy = useMemo(() => {
+    if (!leverage || !vaultObj) return
+    const tradingFees = parseFloat(vaultObj.workers[0].trading_fee) * 365 * 100 * leverage ?? 1
+    const totalApr = tradingFees - -parseFloat(vaultObj.daily_borrow_interest ?? '0') * 365 * 100 * 1
+    const totalAprLeve = totalApr * (leverage ?? 1 - 1)
+    const dailyApr = totalAprLeve / 365
+    const totalApy = ((1 + dailyApr / 100) ** 365 - 1) * 100
+    return totalApy.toString()
+  }, [leverage, vaultObj])
+
+  const [closing, setClosing] = useState(false)
+
+  const positionClose = useCallback(async () => {
+    const pos = await vaultContract.positions(positionId)
+
+    if (pos.debtShare.eq(0)) {
+      // closed
+      console.log('position closed')
+      addPopup(
+        {
+          txn: {
+            hash: undefined,
+            success: false,
+            summary: 'Do not close positions repeatedly',
+          },
+        },
+        undefined
+      )
+      return
+    }
+    setClosing(true)
+    vaultContract
+      .work(
+        positionId,
+        pos.worker, // farmingToken
+        0,
+        0,
+        MaxUint256,
+        defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          ['0xDCa0be16B494E7DdDDfee7527f9649cF67f5104E', defaultAbiCoder.encode(['uint256'], [parseEther('0')])]
+        )
+        // , {gasLimit: 20_000_000}
+      )
+      .then(async (res) => {
+        await res
+          .wait()
+          .then((value) => {
+            addPopup(
+              {
+                txn: {
+                  hash: value.transactionHash,
+                  success: value.status ? true : false,
+                  summary: value.status ? `Closed successfully` : `Failed to close`,
+                },
+              },
+              value.transactionHash
+            )
+          })
+          .finally(() => setClosing(false))
+      })
+      .catch((err) => {
+        console.log(err)
+        addPopup(
+          {
+            txn: {
+              hash: undefined,
+              success: false,
+              summary: err.message,
+            },
+          },
+          undefined
+        )
+        setClosing(false)
+      })
+  }, [vaultContract, positionId, addPopup])
+
+  if (positionValue && Number(positionValue) > 0) {
+    return (
+      <LendItemWrapper>
+        <RowFixed>
+          <IconWrapper size={32}>{/* <img src={pay.logoURI} alt={pay.symbol} /> */}</IconWrapper>
+          <AutoColumn>
+            <FarmText>
+              {baseToken?.symbol ?? ''}-{farmingToken?.symbol ?? ''}
+            </FarmText>
+            <FarmText fontSize={14}>Pancake Swap</FarmText>
+          </AutoColumn>
+        </RowFixed>
+        <RowFixed>
+          <FarmText>
+            {format(formatEther(positionValue ?? 0))} {baseToken?.symbol ?? ''}
+          </FarmText>
+        </RowFixed>
+        <RowFixed>
+          <FarmText>
+            {format(formatEther(debtShare))} {baseToken?.symbol ?? ''}
+          </FarmText>
+        </RowFixed>
+        <RowFixed>
+          <FarmText>
+            {format(formatEther(equityValue))} {baseToken?.symbol ?? ''}
+          </FarmText>
+        </RowFixed>
+        <RowFixed>
+          <FarmText>{currentApy ? `${format(currentApy)} %` : '-'} </FarmText>
+        </RowFixed>
+        <RowFixed>
+          <FarmText>{safetyBuffer ? `${format(safetyBuffer)} %` : '-'}</FarmText>
+        </RowFixed>
+        <AutoColumn gap="5px" justify={'center'}>
+          <ButtonFarmPrimary
+            padding={'8px'}
+            width={'120px'}
+            disabled={!configKey}
+            as={Link}
+            to={`/farm/${configKey}/1/${positionId}`}
+          >
+            Adjust
+          </ButtonFarmPrimary>
+          <LendButtonOutlined onClick={positionClose} disabled={closing}>
+            {closing ? <Dots>Closeing</Dots> : 'Close'}
+          </LendButtonOutlined>
         </AutoColumn>
-      </RowFixed>
-      <RowFixed>
-        <FarmText>{format(formatEther(positionValue ?? 0))} USDT</FarmText>
-      </RowFixed>
-      <RowFixed>{/* <FarmText>{format(formatEther(debt))} USDT</FarmText> */}</RowFixed>
-      <RowFixed>{/* <FarmText>{format(formatEther(equity))} USDT</FarmText> */}</RowFixed>
-      <RowFixed>
-        <FarmText>-%</FarmText>
-      </RowFixed>
-      <RowFixed>
-        <FarmText>-%</FarmText>
-      </RowFixed>
-      <AutoColumn gap="5px" justify={'center'}>
-        <ButtonFarmPrimary padding={'8px'} width={'120px'}>
-          Adjust
-        </ButtonFarmPrimary>
-        <LendButtonOutlined>Close</LendButtonOutlined>
-      </AutoColumn>
-    </LendItemWrapper>
-  )
+      </LendItemWrapper>
+    )
+  }
+  return null
 }
 
 export function replaceSource(sourceKey: number) {

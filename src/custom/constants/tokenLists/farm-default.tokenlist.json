@@ -11,7 +11,7 @@
       "name": "FARM-USDC",
       "configKey": "pcs-farm-usdc",
       "source": 1,
-      "leverage": 3,
+      "leverage": 4,
       "factory": "0x768ACbc5886a39817e1197EedeD9f075fFBe3389",
       "pairAddress": "0x07Ff8D9C794Eda4D13522552B3DB676134c89623",
       "tokenList": [
@@ -30,6 +30,7 @@
           "address": "0xAC8B36d26f704c43cA3AAC6682083786eB83cf38",
           "chainId": 97,
           "decimals": 18,
+          "worker": "0x44b24138e620a2f24aa82c66508f0d69337881c1",
           "logoURI": "https://www.centre.io/hubfs/usdc-icon-86074d9d49.png",
           "active": true
         }
