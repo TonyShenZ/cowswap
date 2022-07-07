@@ -134,7 +134,7 @@ const StyledBalanceMax = styled.button<{ disabled?: boolean }>`
   font-weight: 500;
   cursor: pointer;
   padding: 0;
-  color: ${({ theme }) => theme.primaryText1};
+  color: ${({ theme }) => theme.primary1};
   opacity: ${({ disabled }) => (!disabled ? 1 : 0.4)};
   pointer-events: ${({ disabled }) => (!disabled ? 'initial' : 'none')};
   margin-left: 0.25rem;
@@ -273,7 +273,7 @@ export default function CurrencyInputPanel({
                 <RowFixed style={{ height: '17px' }}>
                   <TYPE.body
                     onClick={onMax}
-                    color={theme.text2}
+                    color={theme.text1}
                     fontWeight={400}
                     fontSize={14}
                     style={{ display: 'inline', cursor: 'pointer' }}

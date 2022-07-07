@@ -296,6 +296,11 @@ export function toV2LiquidityToken([tokenA, tokenB]: [Token, Token]): Token {
   if (tokenA.equals(tokenB)) throw new Error('Tokens cannot be equal')
   if (!V2_FACTORY_ADDRESSES[tokenA.chainId]) throw new Error('No V2 factory address on this chain')
 
+  console.log(
+    'toV2LiquidityToken',
+    computePairAddress({ factoryAddress: '0x35641aF2aa163b39752Dd15185b9894A32587655', tokenA, tokenB })
+  )
+
   return new Token(
     tokenA.chainId,
     computePairAddress({ factoryAddress: V2_FACTORY_ADDRESSES[tokenA.chainId], tokenA, tokenB }),
@@ -311,7 +316,6 @@ export function toV2LiquidityToken([tokenA, tokenB]: [Token, Token]): Token {
 export function useTrackedTokenPairs(): [Token, Token][] {
   const { chainId } = useActiveWeb3React()
   const tokens = useAllTokens()
-
   // pinned pairs
   const pinnedPairs = useMemo(() => (chainId ? PINNED_PAIRS[chainId] ?? [] : []), [chainId])
 

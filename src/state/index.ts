@@ -22,12 +22,12 @@ const PERSISTED_KEYS: string[] = ['user', 'transactions', 'lists']
 const store = configureStore({
   reducer: {
     application,
+    burn,
     user,
     transactions,
     swap,
     mint,
     mintV3,
-    burn,
     burnV3,
     multicall,
     lists,

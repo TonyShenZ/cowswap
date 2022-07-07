@@ -40,7 +40,7 @@ export const LendCard = styled(Card)`
 `
 export const LendBackground = styled.div<{ background?: string }>`
   position: absolute;
-  width: 771px;
+  width: 483px;
   height: 267px;
   top: 350px;
   left: 50%;

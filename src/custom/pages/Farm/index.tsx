@@ -169,7 +169,7 @@ export default function Farm() {
   const [positionList, setPositionList] = useState<PositionMeta[]>([])
 
   const [dexIndex, setDexIndex] = useState(0)
-  const dexList = useMemo(() => ['All', 'PancakeSwap', 'HashDEX'], [])
+  const dexList = useMemo(() => ['All', 'PancakeSwap'], [])
   const handleSelectDex = useCallback(
     (idx: number) => {
       setDexIndex(idx)
@@ -178,7 +178,7 @@ export default function Farm() {
   )
 
   const [assetsIndex, setAssetsIndex] = useState(0)
-  const assetsList = useMemo(() => ['All', 'CAKE', 'BNB'], [])
+  const assetsList = useMemo(() => ['All', 'FARM'], [])
 
   const handleSelectAssets = useCallback(
     (idx: number) => {
@@ -206,7 +206,7 @@ export default function Farm() {
 
   return (
     <LendCard>
-      <LendBackground background="rgba(132, 251, 186, 0.2)" />
+      <LendBackground background="rgba(132, 251, 186, 0.4)" />
       <AutoColumn gap="32px">
         {positionList && positionList.length > 0 ? (
           <MyPostionsWrapper>
@@ -250,10 +250,11 @@ export default function Farm() {
                 </LendHederWrap>
               </LendHeader>
               {positionList.map((x) => (
-                <PositonsItem key={x.id} positionItem={x} vault={vaultList} />
+                <>
+                  <PositonsItem key={x.id} positionItem={x} vault={vaultList} />
+                  <Line opacity={0.15} />
+                </>
               ))}
-
-              <Line opacity={0.15} />
             </AutoColumn>
           </MyPostionsWrapper>
         ) : null}

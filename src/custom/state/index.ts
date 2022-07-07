@@ -6,9 +6,9 @@ import application from 'state/application/reducer'
 import user from '@src/state/user/reducer'
 import swap from '@src/state/swap/reducer'
 import mint from '@src/state/mint/reducer'
-// import mintV3 from '@src/state/mint/v3/reducer'
+import mintV3 from '@src/state/mint/v3/reducer'
 // import lists from '@src/state/lists/reducer'
-// import burn from '@src/state/burn/reducer'
+import burn from '@src/state/burn/reducer'
 // import burnV3 from '@src/state/burn/v3/reducer'
 import logs from '@src/state/logs/slice'
 import multicall from '@src/state/multicall/reducer'
@@ -34,8 +34,8 @@ const UNISWAP_REDUCERS = {
   user,
   swap,
   mint,
-  // mintV3,
-  // burn,
+  mintV3,
+  burn,
   // burnV3,
   multicall,
   // lists,

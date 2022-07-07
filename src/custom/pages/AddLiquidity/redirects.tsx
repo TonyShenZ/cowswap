@@ -9,7 +9,6 @@ export default function RedirectDuplicateTokenIdsV2(
       params: { currencyIdA, currencyIdB },
     },
   } = props
-
   if (currencyIdA && currencyIdB && currencyIdA.toLowerCase() === currencyIdB.toLowerCase()) {
     return <Redirect to={`/add/v2/${currencyIdA}`} />
   }

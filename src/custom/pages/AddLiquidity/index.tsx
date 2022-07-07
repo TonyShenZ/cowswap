@@ -28,7 +28,6 @@ import useTransactionDeadline from '@src/hooks/useTransactionDeadline'
 import { PairState } from '@src/hooks/useV2Pairs'
 import { useActiveWeb3React } from '@src/hooks/web3'
 // import { WETH9_EXTENDED } from '@src/custom/constants/tokens/tokensMod'
-import { WETH9 } from '@uniswap/sdk-core'
 import { useWalletModalToggle } from '@src/state/application/hooks'
 import { Field } from '@src/state/mint/actions'
 import { useDerivedMintInfo, useMintActionHandlers, useMintState } from '@src/state/mint/hooks'
@@ -45,6 +44,7 @@ import { ConfirmAddModalBottom } from './ConfirmAddModalBottom'
 import { PoolPriceBar } from './PoolPriceBar'
 import { Wrapper } from '@src/pages/AddLiquidity/styled'
 import { Dots } from '@src/pages/Pool/styleds'
+import { WETH9_EXTENDED } from '@src/custom/constants/tokens'
 
 const DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -61,7 +61,9 @@ export default function AddLiquidity({
   const currencyB = useCurrency(currencyIdB)
 
   const oneCurrencyIsWETH = Boolean(
-    chainId && ((currencyA && currencyA.equals(WETH9[chainId])) || (currencyB && currencyB.equals(WETH9[chainId])))
+    chainId &&
+      ((currencyA && currencyA.equals(WETH9_EXTENDED[chainId])) ||
+        (currencyB && currencyB.equals(WETH9_EXTENDED[chainId])))
   )
 
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected

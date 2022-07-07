@@ -26,6 +26,9 @@ const PoolFinder = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName
 const RedirectDuplicateTokenIdsV2 = lazy(
   () => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/AddLiquidity/redirects')
 )
+const RemoveLiquidity = lazy(
+  () => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/RemoveLiquidity')
+)
 
 const Lend = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Lend'))
 const LendDepPage = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Lend/LendDepPage'))
@@ -33,6 +36,11 @@ const LendWitPage = lazy(() => import(/* webpackPrefetch: true,  webpackChunkNam
 
 const Farm = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Farm'))
 const FarmPage = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Farm/FarmPage'))
+
+const MigrateV2 = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/MigrateV2'))
+const MigrateV2Pair = lazy(
+  () => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/MigrateV2/MigrateV2Pair')
+)
 
 // const Claim = lazy(() => import(/* webpackChunkName: "claim" */ 'pages/Claim'))
 // const PrivacyPolicy = lazy(() => import(/* webpackChunkName: "privacy_policy" */ 'pages/PrivacyPolicy'))
@@ -112,6 +120,10 @@ export default function App() {
             <Route exact strict path="/pool/v2" component={Pool} />
 
             <Route exact strict path="/add/v2/:currencyIdA?/:currencyIdB?" component={RedirectDuplicateTokenIdsV2} />
+            <Route exact strict path="/remove/v2/:currencyIdA/:currencyIdB" component={RemoveLiquidity} />
+
+            <Route exact strict path="/migrate/v2" component={MigrateV2} />
+            <Route exact strict path="/migrate/v2/:address" component={MigrateV2Pair} />
 
             <Route exact strict path="/lend" component={Lend} />
             <Route exact strict path="/lend/dep/:payAddress/:getAddress" component={LendDepPage} />
