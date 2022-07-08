@@ -5,7 +5,7 @@ import useTheme from 'hooks/useTheme'
 import { darken } from 'polished'
 import { ReactNode } from 'react'
 import { ArrowLeft } from 'react-feather'
-import { Link as HistoryLink, NavLink, useLocation } from 'react-router-dom'
+import { Link as HistoryLink, NavLink } from 'react-router-dom'
 import { Box } from 'rebass'
 import { useAppDispatch } from 'state/hooks'
 import { resetMintState } from 'state/mint/actions'
@@ -113,7 +113,8 @@ export function AddRemoveTabs({
   const theme = useTheme()
   // reset states on back
   const dispatch = useAppDispatch()
-  const location = useLocation()
+  // const location = useLocation()
+  console.log(positionID)
 
   // detect if back should redirect to v3 or v2 pool page
   const poolLink = '/pool/v2'
