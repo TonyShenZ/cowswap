@@ -16,7 +16,7 @@ export const Container = styled.div`
 export const Wrapper = styled.div`
   width: 100%;
   position: relative;
-  padding: 8px;
+  padding: 8px !important;
 `
 
 export const ArrowWrapper = styled.div<{ clickable: boolean }>`

@@ -314,9 +314,7 @@ export const UniFixedGlobalStyle = css`
   input,
   textarea,
   button {
-    /* font-family: 'Inter', sans-serif; */
-    font-family: 'apple-system', 'Helvetica Neue', 'Helvetica', 'Arial', 'Heiti SC', 'Microsoft YaHei', 'Micro Hei',
-      'Inter', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-display: fallback;
   }
   @supports (font-variation-settings: normal) {
@@ -324,8 +322,9 @@ export const UniFixedGlobalStyle = css`
     input,
     textarea,
     button {
-      font-family: 'apple-system', 'Helvetica Neue', 'Helvetica', 'Arial', 'Heiti SC', 'Microsoft YaHei', 'Micro Hei',
-        'Inter var', sans-serif;
+      font-family: 'Inter var', sans-serif;
+      /* font-family: 'apple-system', 'Helvetica Neue', 'Helvetica', 'Arial', 'Heiti SC', 'Microsoft YaHei', 'Micro Hei',
+        'Inter var', sans-serif; */
     }
   }
   html,

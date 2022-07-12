@@ -2,7 +2,7 @@ import styled from 'styled-components/macro'
 import useLoadingWithTimeout from 'hooks/useLoadingWithTimeout'
 import { useIsQuoteRefreshing } from 'state/price/hooks'
 
-import CurrencyInputPanelMod, { CurrencyInputPanelProps, Wrapper } from './CurrencyInputPanelMod'
+import CurrencyInputPanelMod, { CurrencyInputPanelProps, Wrapper, CurrencyLogoPanel } from './CurrencyInputPanelMod'
 import CurrencySearchModalUni from '@src/components/SearchModal/CurrencySearchModal'
 
 import { LONG_LOAD_THRESHOLD } from 'constants/index'
@@ -32,5 +32,6 @@ export function CurrencyInputPanel(props: CurrencyInputPanelProps) {
     </Wrapper>
   )
 }
+export { CurrencyLogoPanel }
 
 export default CurrencyInputPanel

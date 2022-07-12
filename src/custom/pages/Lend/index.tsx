@@ -101,7 +101,6 @@ export const LendItemWrapper = styled(LendHeader)`
 `
 
 // const ONE_YEAR = 3600 * 24 * 365
-
 const ONE_DAY = 3600 * 24
 
 export default function Lend() {
@@ -152,26 +151,30 @@ function LendItem({ pay, get }: { pay: TokenMeta; get: TokenMeta }) {
   const ratePerSec = useSingleCallResult(vaultConfigContract, 'getInterestRate', [vaultDebtVal, erc20Balance])
     ?.result?.[0]
 
+  const totalPoolTokenBalance = useMemo(() => {
+    if (!erc20Balance || !vaultDebtVal) return
+    return erc20Balance.add(vaultDebtVal)
+  }, [erc20Balance, vaultDebtVal])
+
   // utilization
   const utilization = useMemo(() => {
     if (!vaultDebtVal || !totalToken) return
     return vaultDebtVal.mul(10000).div(totalToken).toNumber() / 100
   }, [vaultDebtVal, totalToken])
 
-  // // apr
-  // const apr = useMemo(() => {
-  //   if (!erc20Balance || erc20Balance <= 0 || !ratePerSec) return
-  //   // (ratePerSec * ONE_YEAR) * 10000 / erc20Balance
-  //   return ratePerSec.mul(ONE_YEAR).mul(10000).div(erc20Balance)
-  // }, [erc20Balance, ratePerSec])
+  // apr
+  const apr = useMemo(() => {
+    if (!totalPoolTokenBalance || !ratePerSec || !vaultDebtVal) return
+    return ratePerSec.mul(ONE_DAY).mul(vaultDebtVal).div(totalPoolTokenBalance)
+  }, [totalPoolTokenBalance, ratePerSec, vaultDebtVal])
 
   /**
    * APY = (1 + Periodic Rate)^周期数– 1
    */
   const apy = useMemo(() => {
-    if (!ratePerSec) return
-    return (parseFloat(formatEther(ratePerSec.mul(ONE_DAY))) + 1) ** 365 - 1
-  }, [ratePerSec])
+    if (!apr) return
+    return ((parseFloat(formatEther(apr)) + 1) ** 365 - 1) * 100
+  }, [apr])
 
   return (
     <LendItemWrapper>

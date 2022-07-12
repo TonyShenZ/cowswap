@@ -1,4 +1,4 @@
-[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/gnosis/gp-swap-ui)
+<!-- [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/gnosis/gp-swap-ui)
 
 <p align="center">
   <img width="400" src="docs/images/logo-cow-swap.png">
@@ -28,7 +28,7 @@ Please see the:
 - [CoW Protocol: Smart contracts](https://github.com/gnosis/gp-v2-contracts)
 - [CoW Protocol: Services](https://github.com/gnosis/gp-v2-services)
 
-You can block an entire list of tokens by passing in a tokenlist like [here](./src/constants/lists.ts) or you can block specific tokens by adding them to [unsupported.tokenlist.json](./src/constants/tokenLists/unsupported.tokenlist.json).
+You can block an entire list of tokens by passing in a tokenlist like [here](./src/constants/lists.ts) or you can block specific tokens by adding them to [unsupported.tokenlist.json](./src/constants/tokenLists/unsupported.tokenlist.json). -->
 
 ### Install Dependencies
 

@@ -5,6 +5,8 @@ import '@reach/slider/styles.css'
 import { Text } from 'rebass'
 
 const SliderWrapper = styled(Slider)`
+  width: 99%;
+  margin: 0px auto;
   cursor: pointer;
   & > [data-reach-slider-track] {
     background: rgb(255 255 255 / 50%);
@@ -61,6 +63,18 @@ export default function LeverageSlider({
           <MarketSpan fontSize={14}>{x.toFixed(2)}</MarketSpan>
         </SliderMarkerWrapper>
       ))}
+    </SliderWrapper>
+  )
+}
+
+export function PercentageSlider({ value, change }: { value: number | undefined; change: (i: any) => void }) {
+  return (
+    <SliderWrapper min={1} max={100} step={1} value={value} onChange={change}>
+      <SliderMarkerWrapper value={1} />
+      <SliderMarkerWrapper value={25} />
+      <SliderMarkerWrapper value={50} />
+      <SliderMarkerWrapper value={75} />
+      <SliderMarkerWrapper value={100} />
     </SliderWrapper>
   )
 }

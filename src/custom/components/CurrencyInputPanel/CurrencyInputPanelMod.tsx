@@ -502,28 +502,7 @@ export default function CurrencyInputPanel({
               }}
             >
               <Aligner>
-                <RowFixed>
-                  {pair ? (
-                    <span style={{ marginRight: '0.5rem' }}>
-                      <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
-                    </span>
-                  ) : currency ? (
-                    <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={currency} size={'24px'} />
-                  ) : null}
-                  {pair ? (
-                    <StyledTokenName className="pair-name-container">
-                      {pair?.token0.symbol}:{pair?.token1.symbol}
-                    </StyledTokenName>
-                  ) : (
-                    <StyledTokenName className="token-symbol-container" active={Boolean(currency && currency.symbol)}>
-                      {(currency && currency.symbol && currency.symbol.length > 20
-                        ? currency.symbol.slice(0, 4) +
-                          '...' +
-                          currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
-                        : currency?.symbol) || <Trans>Select a token</Trans>}
-                    </StyledTokenName>
-                  )}
-                </RowFixed>
+                <CurrencyLogoPanel currency={currency} pair={pair} />
                 {onCurrencySelect && <StyledDropDown selected={!!currency} />}
               </Aligner>
             </CurrencySelect>
@@ -600,5 +579,32 @@ export default function CurrencyInputPanel({
       {/* Fee Information */}
       {!!label && <AuxInformationContainer hideInput>{label}</AuxInformationContainer>}
     </>
+  )
+}
+
+export function CurrencyLogoPanel({ currency, pair = null }: { currency?: Currency | null; pair?: Pair | null }) {
+  return (
+    <RowFixed>
+      {pair ? (
+        <span style={{ marginRight: '0.5rem' }}>
+          <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
+        </span>
+      ) : currency ? (
+        <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={currency} size={'24px'} />
+      ) : null}
+      {pair ? (
+        <StyledTokenName className="pair-name-container">
+          {pair?.token0.symbol}:{pair?.token1.symbol}
+        </StyledTokenName>
+      ) : (
+        <StyledTokenName className="token-symbol-container" active={Boolean(currency && currency.symbol)}>
+          {(currency && currency.symbol && currency.symbol.length > 20
+            ? currency.symbol.slice(0, 4) +
+              '...' +
+              currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
+            : currency?.symbol) || <Trans>Select a token</Trans>}
+        </StyledTokenName>
+      )}
+    </RowFixed>
   )
 }
