@@ -271,7 +271,7 @@ export default function Header() {
           </Title>
           <HeaderLinks>
             {/* <StyledNavLink to="/swap">Swap</StyledNavLink> */}
-            <StyledNavLink to="/orderBook">OrderBook</StyledNavLink>
+            <StyledNavLink to="/trade">Trade</StyledNavLink>
             <StyledNavLink to="/pool/v2">Liquidity</StyledNavLink>
             <StyledNavLink to="/farm">Farm</StyledNavLink>
             <StyledNavLink to="/lend">Lend</StyledNavLink>

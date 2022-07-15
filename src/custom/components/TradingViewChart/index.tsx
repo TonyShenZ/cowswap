@@ -1,4 +1,4 @@
-import { ChartProperties } from '@src/custom/pages/OrderBook/styleds'
+import { ChartProperties } from '@src/custom/pages/Trade/styleds'
 import { useCallback, useContext, useEffect, useRef } from 'react'
 import styled, { ThemeContext } from 'styled-components/macro'
 import binanceAPI from '../../api/binanceSer'

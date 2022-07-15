@@ -19,7 +19,7 @@ const SENTRY_TRACES_SAMPLE_RATE = process.env.REACT_APP_SENTRY_TRACES_SAMPLE_RAT
 
 const Swap = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Swap'))
 // const Limit = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Limit'))
-const OrderBook = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/OrderBook'))
+const Trade = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ '@src/custom/pages/Trade'))
 const Pool = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Pool'))
 const PoolFinder = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Pool'))
 
@@ -113,7 +113,7 @@ export default function App() {
       <Wrapper>
         <Suspense fallback={Loading}>
           <Switch>
-            <Route exact strict path="/orderBook" component={OrderBook} />
+            <Route exact strict path="/trade" component={Trade} />
 
             <Route exact strict path="/pool/v2/find" component={PoolFinder} />
 
