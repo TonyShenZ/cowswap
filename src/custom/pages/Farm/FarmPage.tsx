@@ -108,27 +108,27 @@ const ButtonFarm = styled(ButtonGreen)`
   padding: 8px;
   border-radius: 12px;
 `
-const SimulatorButton = styled(ButtonOutlined)`
-  width: 240px;
-  border: 1px solid ${({ theme }) => theme.primary6};
-  color: ${({ theme }) => theme.primary6};
-  padding: 8px;
-  border-radius: 12px;
-  &:focus {
-    box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
-  }
-  &:hover {
-    box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
-    color: ${({ theme }) => theme.primary6};
-  }
-  &:active {
-    box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
-  }
-  &:disabled {
-    opacity: 50%;
-    cursor: auto;
-  }
-`
+// const SimulatorButton = styled(ButtonOutlined)`
+//   width: 240px;
+//   border: 1px solid ${({ theme }) => theme.primary6};
+//   color: ${({ theme }) => theme.primary6};
+//   padding: 8px;
+//   border-radius: 12px;
+//   &:focus {
+//     box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
+//   }
+//   &:hover {
+//     box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
+//     color: ${({ theme }) => theme.primary6};
+//   }
+//   &:active {
+//     box-shadow: 0 0 0 1px ${({ theme }) => theme.primary6};
+//   }
+//   &:disabled {
+//     opacity: 50%;
+//     cursor: auto;
+//   }
+// `
 const NewAutoColumn = styled(AutoColumn)`
   width: 100%;
 `
@@ -667,7 +667,7 @@ export default function FarmPage({
           {positionId == '0' ? (
             <SummaryCard>
               <NewAutoColumn gap="24px">
-                <TYPE.mediumHeader>{poolInfo.name} Farming Simulator</TYPE.mediumHeader>
+                {/* <TYPE.mediumHeader>{poolInfo.name} Farming Simulator</TYPE.mediumHeader> */}
                 {/* <Row height={600}>
                 <Simulator />
               </Row> */}
@@ -718,7 +718,7 @@ export default function FarmPage({
                 )} `
               )
             ) : null}
-            <SimulatorButton>Simulator</SimulatorButton>
+            {/* <SimulatorButton>Simulator</SimulatorButton> */}
           </ButtonWrapper>
         </AutoColumn>
       ) : (
