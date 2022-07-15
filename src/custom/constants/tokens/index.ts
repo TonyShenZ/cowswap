@@ -3,7 +3,7 @@ import { WETH9, Token } from '@uniswap/sdk-core'
 import { DAI_RINKEBY, USDC_RINKEBY, USDT_RINKEBY, WBTC_RINKEBY } from 'utils/rinkeby/constants'
 import { DAI, USDC as USDC_MAINNET, USDT, WBTC } from '@src/constants/tokens'
 import { USDC_XDAI, /*USDT_XDAI,*/ WBTC_XDAI, WETH_XDAI, WXDAI } from 'utils/xdai/constants'
-import { WETH_BSC, USDC_BSCTEST, USDT_BSCTEST } from 'utils/bsctest/constants'
+import { USDC_BSCTEST, WETH_BSC, USDT_BSCTEST } from 'utils/bsctest/constants'
 import { SupportedChainId } from 'constants/chains'
 import { V_COW_CONTRACT_ADDRESS, COW_CONTRACT_ADDRESS } from 'constants/index'
 
@@ -105,6 +105,7 @@ const GNO_MAINNET = new Token(
   'Gnosis'
 )
 const GNO_XDAI = new Token(SupportedChainId.XDAI, '0x9c58bacc331c9aa871afd802db6379a98e80cedb', 18, 'GNO', 'Gnosis')
+
 const GNO_RINKEBY = new Token(
   SupportedChainId.RINKEBY,
   '0xd0dab4e640d95e9e8a47545598c33e31bdb53c7c',

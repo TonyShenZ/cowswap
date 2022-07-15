@@ -285,7 +285,7 @@ export function themeVariables(darkMode: boolean, colorsTheme: Colors) {
     currencyInput: {
       background: `${darkMode ? colorsTheme.blueShade : colorsTheme.white}`,
       color: colorsTheme.text1,
-      border: `2px solid ${darkMode ? colorsTheme.blueShade2 : colorsTheme.disabled}`,
+      border: `1px solid ${darkMode ? colorsTheme.blueShade2 : colorsTheme.disabled}`,
     },
     buttonCurrencySelect: {
       background: colorsTheme.bg1,

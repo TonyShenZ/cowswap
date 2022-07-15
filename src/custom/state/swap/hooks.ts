@@ -36,7 +36,7 @@ import { FEE_SIZE_THRESHOLD, INITIAL_ALLOWED_SLIPPAGE_PERCENT, WETH_LOGO_URI, XD
 import TradeGp from './TradeGp'
 
 import { SupportedChainId as ChainId } from 'constants/chains'
-import { WETH9_EXTENDED as WETH, GpEther as ETHER } from 'constants/tokens'
+import { WETH9_EXTENDED as WETH, GpEther as ETHER, USDC_BY_CHAIN } from 'constants/tokens'
 
 import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '@src/state/user/hooks'
 import { PriceImpact } from 'hooks/usePriceImpact'
@@ -415,12 +415,21 @@ export function validatedRecipient(recipient: any): string | null {
   return null
 }
 
-export function queryParametersToSwapState(parsedQs: ParsedQs, defaultInputCurrency = ''): SwapState {
+export function queryParametersToSwapState(
+  parsedQs: ParsedQs,
+  defaultInputCurrency = '',
+  chainId: ChainId | undefined = undefined
+): SwapState {
   let inputCurrency = parseCurrencyFromURLParameter(parsedQs.inputCurrency)
   let outputCurrency = parseCurrencyFromURLParameter(parsedQs.outputCurrency)
-  if (inputCurrency === '' && outputCurrency === '') {
-    // default to ETH input
-    inputCurrency = defaultInputCurrency
+  let typedValue = parseTokenAmountURLParameter(parsedQs.exactAmount)
+  const independentField = parseIndependentFieldURLParameter(parsedQs.exactField)
+
+  if (inputCurrency === '' && outputCurrency === '' && typedValue === '' && independentField === Field.INPUT) {
+    // Defaults to 1 ETH -> USDC
+    inputCurrency = defaultInputCurrency // 'ETH' // mod
+    outputCurrency = chainId ? USDC_BY_CHAIN[chainId].address : 'USDC' // mod
+    typedValue = '1'
   } else if (inputCurrency === outputCurrency) {
     // clear output if identical
     outputCurrency = ''
@@ -436,8 +445,8 @@ export function queryParametersToSwapState(parsedQs: ParsedQs, defaultInputCurre
       currencyId: outputCurrency === '' ? null : outputCurrency ?? null,
     },
     limitPrice: outputCurrency,
-    typedValue: parseTokenAmountURLParameter(parsedQs.exactAmount),
-    independentField: parseIndependentFieldURLParameter(parsedQs.exactField),
+    typedValue,
+    independentField,
     recipient,
   }
 }
@@ -450,22 +459,26 @@ export function useDefaultsFromURLSearch(): DefaultFromUrlSearch {
   const parsedQs = useParsedQueryString()
   const [result, setResult] = useState<DefaultFromUrlSearch>()
 
+  // This is not a great fix for setting a default token
+  // but it is better and easiest considering updating default files
+  const defaultInputToken = WETH[chainId || 97].address
+
+  const parsedSwapState = useMemo(() => {
+    return queryParametersToSwapState(parsedQs, defaultInputToken, chainId) // mod
+  }, [chainId, defaultInputToken, parsedQs]) // mod
+
   useEffect(() => {
     if (!chainId) return
-    // This is not a great fix for setting a default token
-    // but it is better and easiest considering updating default files
-    const defaultInputToken = WETH[chainId].address
-    const parsed = queryParametersToSwapState(parsedQs, defaultInputToken)
-    const inputCurrencyId = parsed[Field.INPUT].currencyId ?? undefined
-    const outputCurrencyId = parsed[Field.OUTPUT].currencyId ?? undefined
+    const inputCurrencyId = parsedSwapState[Field.INPUT].currencyId ?? undefined
+    const outputCurrencyId = parsedSwapState[Field.OUTPUT].currencyId ?? undefined
 
     replaceSwapState({
-      typedValue: parsed.typedValue,
-      field: parsed.independentField,
+      typedValue: parsedSwapState.typedValue,
+      field: parsedSwapState.independentField,
       inputCurrencyId,
       outputCurrencyId,
-      recipient: parsed.recipient,
-      limitPrice: parsed.limitPrice,
+      recipient: parsedSwapState.recipient,
+      limitPrice: parsedSwapState.limitPrice,
     })
 
     setResult({ inputCurrencyId, outputCurrencyId })

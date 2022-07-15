@@ -138,6 +138,8 @@ function LendItem({ pay, get }: { pay: TokenMeta; get: TokenMeta }) {
 
   const getContract = useVaultContract(get.address)
 
+  const youGetBalance = useSingleCallResult(getContract, 'balanceOf', [account ?? undefined])?.result?.[0]
+
   // Erc20 balance
   const erc20Balance = useSingleCallResult(payTokenContract, 'balanceOf', [account ?? undefined])?.result?.[0]
 
@@ -190,7 +192,7 @@ function LendItem({ pay, get }: { pay: TokenMeta; get: TokenMeta }) {
       <RowFixed>{totalToken ? `${format(formatEther(totalToken))} ${pay.symbol}` : '-'}</RowFixed>
       <RowFixed>{vaultDebtVal ? `${format(formatEther(vaultDebtVal))} ${pay.symbol}` : '-'}</RowFixed>
       <RowFixed>{utilization ? `${format(utilization.toString())} %` : '-'}</RowFixed>
-      <RowFixed>{erc20Balance ? `${format(formatEther(erc20Balance))} ${pay.symbol}` : '-'}</RowFixed>
+      <RowFixed>{youGetBalance ? `${format(formatEther(youGetBalance))} ${get.symbol}` : '-'}</RowFixed>
       <AutoColumn gap="5px" justify={'center'}>
         <LendButtonOutlined as={Link} to={`/lend/dep/${pay.address}/${get.address}`}>
           Deposit

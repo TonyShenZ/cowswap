@@ -1,6 +1,6 @@
 import AppMod from './AppMod'
 import styled from 'styled-components/macro'
-import { RedirectPathToSwapOnly } from 'pages/Swap/redirects'
+import { RedirectPathToSwapOnly, RedirectToSwap } from 'pages/Swap/redirects'
 // import { RedirectPathToSwapOnly, RedirectToSwap } from 'pages/Swap/redirects'
 import { Suspense, lazy } from 'react'
 import { Route, Switch } from 'react-router-dom'
@@ -17,7 +17,7 @@ import { SENTRY_IGNORED_GP_QUOTE_ERRORS } from 'api/gnosisProtocol/errors/QuoteE
 const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN
 const SENTRY_TRACES_SAMPLE_RATE = process.env.REACT_APP_SENTRY_TRACES_SAMPLE_RATE
 
-// const Swap = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Swap'))
+const Swap = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Swap'))
 // const Limit = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Limit'))
 const OrderBook = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/OrderBook'))
 const Pool = lazy(() => import(/* webpackPrefetch: true,  webpackChunkName: "swap" */ 'pages/Pool'))
@@ -132,8 +132,8 @@ export default function App() {
             <Route exact strict path="/farm" component={Farm} />
             <Route exact strict path="/farm/:configKey/:leverage/:positionId" component={FarmPage} />
 
-            {/* <Route exact strict path="/swap" component={Swap} /> */}
-            {/* <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} /> */}
+            <Route exact strict path="/swap" component={Swap} />
+            <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} />
             {/* <Route exact strict path="/limit" component={Limit} /> */}
 
             {/* <Route exact strict path="/send" component={RedirectPathToSwapOnly} /> */}

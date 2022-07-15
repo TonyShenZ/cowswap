@@ -36,11 +36,11 @@ export default createReducer<SwapState>(initialState, (builder) =>
         return {
           [Field.INPUT]: {
             // currencyId: inputCurrencyId ?? null,
-            currencyId: inputCurrencyId ?? '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd',
+            currencyId: inputCurrencyId ?? null,
           },
           [Field.OUTPUT]: {
             // currencyId: outputCurrencyId ?? null,
-            currencyId: outputCurrencyId ?? '0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7',
+            currencyId: outputCurrencyId ?? null,
           },
           limitPrice: '',
           independentField: field,
@@ -50,7 +50,6 @@ export default createReducer<SwapState>(initialState, (builder) =>
       }
     )
     .addCase(selectCurrency, (state, { payload: { currencyId, field } }) => {
-      console.log('selectCurrency')
       const otherField = field === Field.INPUT ? Field.OUTPUT : Field.INPUT
       if (currencyId === state[otherField].currencyId) {
         // the case where we have to swap the order
@@ -77,8 +76,6 @@ export default createReducer<SwapState>(initialState, (builder) =>
       }
     })
     .addCase(typeInput, (state, { payload: { field, typedValue } }) => {
-      console.log('typeInput')
-
       return {
         ...state,
         independentField: field,

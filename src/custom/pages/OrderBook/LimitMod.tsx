@@ -84,7 +84,7 @@ import AdvancedSwapDetailsDropdown from 'components/swap/AdvancedSwapDetailsDrop
 import { formatSmart } from 'utils/format'
 import { RowSlippage } from 'components/swap/TradeSummary/RowSlippage'
 import usePrevious from 'hooks/usePrevious'
-import { Input, StyledAppBody } from './styleds'
+import { Inputs, StyledAppBody } from './styleds'
 import { ApplicationModal } from 'state/application/reducer'
 import { OperationType } from 'components/TransactionConfirmationModal'
 import AffiliateStatusCheck from 'components/AffiliateStatusCheck'
@@ -600,7 +600,7 @@ export default function Limit({
               */}
               {/* GP ARROW SWITCHER */}
               <AutoRow padding={'6px 0'} margin={'0px'} gap="20px">
-                <Input
+                <Inputs
                   type={'number'}
                   className="limit-price-input"
                   placeholder={trade?.executionPrice.toFixed() ?? 'Price'}

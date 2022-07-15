@@ -55,7 +55,7 @@ export const MarkerOrderWrapper = styled(AutoColumn)`
   background: ${({ theme }) => theme.bg9};
 `
 
-export const Input = styled.input<{ error?: boolean }>`
+export const Inputs = styled.input<{ error?: boolean }>`
   font-size: 1.2rem;
   outline: none;
   border: 2px solid ${({ theme }) => theme.blueShade2};

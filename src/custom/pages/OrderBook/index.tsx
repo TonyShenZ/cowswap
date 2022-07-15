@@ -81,6 +81,25 @@ export const ButtonError = styled(ButtonErrorMod)`
   }
 `
 
+export const SellButtonError = styled(ButtonErrorMod)`
+  background: ${({ theme }) => theme.primary7};
+  &:focus,
+  &:hover,
+  &:active {
+    border: ${({ theme }) => theme.buttonPrimary.border};
+    box-shadow: none;
+    transform: translateY(3px) scale(0.99);
+    background: ${({ theme }) => theme.primary6};
+  }
+  > div,
+  > div > div {
+    width: 100%;
+    word-break: break-all;
+    text-align: center;
+    align-items: center;
+  }
+`
+
 export const ButtonPrimary = styled(ButtonPrimaryMod)`
   > div,
   > div > div {
@@ -467,7 +486,9 @@ export default function OrderBook(props: RouteComponentProps) {
     },
     [setDefaultIndex, onLimitPriceInput]
   )
+  // <Handicap />
 
+  // <Transactions />
   return (
     <Container>
       <OrderBookWrapper>

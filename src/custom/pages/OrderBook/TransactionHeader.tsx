@@ -1,12 +1,17 @@
 import Column from '@src/components/Column'
 import styled from 'styled-components/macro'
-import { Text } from 'rebass'
-import Row from '@src/components/Row'
-import { useSwapState } from '@src/state/swap/hooks'
+import { Text, Box } from 'rebass'
+import Row, { RowFixed } from '@src/components/Row'
+import { Field } from 'state/swap/actions'
+import { useSwapActionHandlers, useSwapState } from '@src/state/swap/hooks'
 import { useCurrency } from '@src/hooks/Tokens'
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { usePairData } from '@src/custom/api/apollo/hooks'
 import { formattedNum } from '@src/custom/utils'
+import { ChevronDown } from 'react-feather'
+import { CurrencySearchModal } from '@src/custom/components/CurrencyInputPanelNew'
+import { Currency } from '@uniswap/sdk-core'
+import { TYPE } from '@src/custom/theme'
 
 const TransactionHeaderWrapper = styled(Row)`
   display: grid;
@@ -22,9 +27,19 @@ const TransactionHeaderDownUp = styled.div`
   grid-template-columns: repeat(6, auto);
   grid-column-gap: 32px;
 `
+const CurrencySelectArea = styled(RowFixed)`
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  :hover {
+    background: ${({ theme }) => theme.bg2};
+  }
+`
 
 export default function TransactionHeader() {
   const { INPUT, OUTPUT } = useSwapState()
+  const { onCurrencySelection } = useSwapActionHandlers()
 
   const inputCurrency = useCurrency(INPUT?.currencyId)
   const outputCurrency = useCurrency(OUTPUT?.currencyId)
@@ -38,61 +53,79 @@ export default function TransactionHeader() {
 
   const pairData = usePairData(pairAddress)
 
+  const [{ modalOpen, tradeType, selectedCurrency, otherSelectedCurrency }, setSearchModalOption] = useState<{
+    modalOpen: boolean
+    tradeType: Field
+    selectedCurrency?: Currency | null | undefined
+    otherSelectedCurrency?: Currency | null | undefined
+  }>({
+    modalOpen: false,
+    tradeType: Field.INPUT,
+  })
+
+  const handleDismissSearch = useCallback(() => {
+    setSearchModalOption({
+      modalOpen: false,
+      tradeType,
+    })
+  }, [setSearchModalOption, tradeType])
+
+  const selectToken = useCallback(
+    (type: Field) => {
+      setSearchModalOption({
+        modalOpen: true,
+        tradeType: type,
+        selectedCurrency: type == Field.INPUT ? inputCurrency : outputCurrency,
+        otherSelectedCurrency: type == Field.OUTPUT ? outputCurrency : inputCurrency,
+      })
+    },
+    [setSearchModalOption, inputCurrency, outputCurrency]
+  )
+
+  const handleSelect = useCallback(
+    (inputCurrency) => onCurrencySelection(tradeType, inputCurrency),
+    [onCurrencySelection, tradeType]
+  )
+
   return (
-    <TransactionHeaderWrapper>
-      <div>
-        {inputCurrency ? inputCurrency.symbol : '-'}/{outputCurrency ? outputCurrency.symbol : '-'}
-      </div>
-      <TransactionHeaderDownUp>
-        <Column>
-          <Text fontSize={16} lineHeight={'19px'}>
-            {pairData.pairs ? formattedNum(pairData.pairs.token0Price) : '-'}
-          </Text>
-          <Text fontSize={12} lineHeight={'14px'}>
-            $ {pairData.pairs ? formattedNum(pairData.pairs.token0Price) : '-'}
-          </Text>
-        </Column>
-        <Column>
-          <Text fontSize={12} lineHeight={'14px'}>
-            24h change
-          </Text>
-          <Text fontSize={14} lineHeight={'16px'}>
-            $ -
-          </Text>
-        </Column>
-        <Column>
-          <Text fontSize={14} lineHeight={'16px'}>
-            Total Liquidity
-          </Text>
-          <Text fontSize={14} lineHeight={'16px'}>
-            $ {pairData.pairs ? formattedNum(pairData.pairs.reserveUSD) : '-'}
-          </Text>
-        </Column>
-        <Column>
-          <Text fontSize={14} lineHeight={'16px'}>
-            Volume(24h)
-          </Text>
-          <Text fontSize={14} lineHeight={'16px'}>
-            {pairData.pairDayDatas ? formattedNum(pairData.pairDayDatas) : '-'}
-          </Text>
-        </Column>
-        <Column>
-          <Text fontSize={14} lineHeight={'16px'}>
-            24h High
-          </Text>
-          <Text fontSize={14} lineHeight={'16px'}>
-            -
-          </Text>
-        </Column>
-        <Column>
-          <Text fontSize={14} lineHeight={'16px'}>
-            24h Low
-          </Text>
-          <Text fontSize={14} lineHeight={'16px'}>
-            -
-          </Text>
-        </Column>
-      </TransactionHeaderDownUp>
-    </TransactionHeaderWrapper>
+    <>
+      <CurrencySearchModal
+        isOpen={modalOpen}
+        onDismiss={handleDismissSearch}
+        onCurrencySelect={handleSelect}
+        selectedCurrency={selectedCurrency}
+        otherSelectedCurrency={otherSelectedCurrency}
+        showCommonBases
+      />
+      <TransactionHeaderWrapper>
+        <RowFixed>
+          <CurrencySelectArea onClick={() => selectToken(Field.INPUT)}>
+            {inputCurrency ? inputCurrency.symbol : '-'} <ChevronDown />
+          </CurrencySelectArea>
+          <Box paddingX={'10px'}>/</Box>
+          <CurrencySelectArea onClick={() => selectToken(Field.OUTPUT)}>
+            {outputCurrency ? outputCurrency.symbol : '-'} <ChevronDown />
+          </CurrencySelectArea>
+        </RowFixed>
+        <TransactionHeaderDownUp>
+          <Column>
+            <TYPE.main fontSize={16} lineHeight={'19px'} color="primary6">
+              {pairData.pairs ? formattedNum(pairData.pairs.token0Price) : '-'}
+            </TYPE.main>
+            <Text fontSize={12} lineHeight={'14px'}>
+              $ {pairData.pairs ? formattedNum(pairData.pairs.token0Price) : '-'}
+            </Text>
+          </Column>
+          <Column>
+            <Text fontSize={12} lineHeight={'14px'}>
+              24h change
+            </Text>
+            <Text fontSize={14} lineHeight={'16px'}>
+              $ -
+            </Text>
+          </Column>
+        </TransactionHeaderDownUp>
+      </TransactionHeaderWrapper>
+    </>
   )
 }

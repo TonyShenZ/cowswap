@@ -6,6 +6,14 @@ export const DAI_BSCTEST = new Token(ChainId.BSCTEST, '0x5592ec0cfb4dbc12d3ab100
 export const BSCTEST_SYMBOL = 'TBNB'
 export const BSCTEST_NAME = 'tBnb'
 
+export const USDC_BSCTEST = new Token(
+  ChainId.BSCTEST,
+  '0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7',
+  6,
+  'USDC',
+  'USD Coin'
+)
+
 export const USDT_BSCTEST = new Token(
   ChainId.BSCTEST,
   '0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7',
@@ -13,14 +21,6 @@ export const USDT_BSCTEST = new Token(
   'USDT',
   'Tether USD'
 )
-export const USDC_BSCTEST = new Token(
-  ChainId.BSCTEST,
-  '0x4DBCdF9B62e891a7cec5A2568C3F4FAF9E8Abe2b',
-  18,
-  'USDC',
-  'USD Coin'
-)
-
 export const WBTC_BSCTEST = new Token(
   ChainId.BSCTEST,
   '0x577D296678535e4903D59A4C929B718e1D575e0A',

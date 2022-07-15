@@ -37,6 +37,8 @@ import { get } from '@src/custom/utils/request'
 // import { Simulator } from './Simulator'
 
 import Farms from 'constants/tokenLists/farm-default.tokenlist.json'
+import { MouseoverTooltipContent } from '@src/custom/components/Tooltip'
+import { StyledInfo } from '../Swap/styleds'
 
 const SeachWrapper = styled(InputPanelWrapper)`
   padding: 15px 16px;
@@ -145,6 +147,19 @@ export default function FarmPage({
 
   const minDebtSize = useSingleCallResult(vaultConfigContract, 'minDebtSize', undefined)?.result?.[0]
 
+  // const reservePool = useSingleCallResult(vaultContract, 'reservePool', undefined)?.result?.[0]
+
+  // total supply
+  const totalToken = useSingleCallResult(vaultContract, 'totalToken')?.result?.[0]
+
+  // total borrowed
+  const vaultDebtVal = useSingleCallResult(vaultContract, 'vaultDebtVal')?.result?.[0]
+
+  const remainingQuota = useMemo(() => {
+    if (!totalToken || !vaultDebtVal) return
+    return totalToken.sub(vaultDebtVal)
+  }, [totalToken, vaultDebtVal])
+
   // const workFactor = useSingleCallResult(vaultConfigContract, 'workFactor', [
   //   '0x44B24138e620a2f24Aa82C66508F0D69337881c1',
   //   0,
@@ -209,10 +224,10 @@ export default function FarmPage({
     [reserve0Raw, reserve1Raw]
   )
 
-  // const reserve1 = useMemo(
-  //   () => (reserve1Raw ? reserve1Raw.mul(WeiPerEther).div(reserve0Raw) : undefined),
-  //   [reserve0Raw, reserve1Raw]
-  // )
+  const reserve1 = useMemo(
+    () => (reserve1Raw ? reserve1Raw.mul(WeiPerEther).div(reserve0Raw) : undefined),
+    [reserve0Raw, reserve1Raw]
+  )
 
   const [borrowTokens, setBorrowTokens] = useState(poolInfo?.tokenList)
 
@@ -263,13 +278,15 @@ export default function FarmPage({
 
   const farmButtonStatus = useMemo(() => {
     if (!tokensBalance[0]?.result || !borrowTokens) return true
-    const providedTokenValue = borrowTokens.find((x) => !x.active)?.value
-    const providedTokenBalance = tokensBalance[0].result?.[0]
+    const token0Valaue = borrowTokens[0].value
+    const token0Balance = tokensBalance[0].result?.[0]
+
+    const token1Valaue = borrowTokens[1].value
+    const token1Balance = tokensBalance[0].result?.[1]
 
     if (
-      providedTokenValue &&
-      providedTokenBalance &&
-      parseFloat(providedTokenValue) <= parseFloat(formatEther(providedTokenBalance))
+      (token0Valaue && token0Balance && parseFloat(token0Valaue) <= parseFloat(formatEther(token0Balance))) ||
+      (token1Valaue && token1Balance && parseFloat(token1Valaue) <= parseFloat(formatEther(token1Balance)))
     ) {
       return false
     } else {
@@ -279,29 +296,59 @@ export default function FarmPage({
 
   // Assets Borrowed(Debt Value)
   const debtValue = useMemo(() => {
-    if (!borrowTokens || !leverageValue || !reserve0) return
+    if (!borrowTokens || !leverageValue || !reserve0 || !reserve1) return
     // borrowed toekn
     const borrowedToken = borrowTokens.find((x) => x.active)
     // Number of tonken provided
     const providedToken = borrowTokens.find((x) => !x.active)
-    if (providedToken?.value && borrowedToken) {
-      const providedTokenAmount = parseFloat(providedToken.value)
-      const average = (providedTokenAmount * parseFloat(leverageValue)) / 2
-      const t1 = average % providedTokenAmount ? average % providedTokenAmount : average
-      const t2 = average % 0 ? average % 0 : average
-      const t1USD = parseFloat(formatEther(reserve0)) * t1
-      const t2USD = parseFloat(formatEther(reserve0)) * t2
+    const token0 = borrowTokens[0]
+    const token1 = borrowTokens[1]
+    if (token0?.value || token1?.value) {
+      const token0Amount = parseFloat(token0.value || '0')
+      const token0Average = (token0Amount * parseFloat(leverageValue)) / 2
+      const token0Avg0 = token0Average % token0Amount ? token0Average % token0Amount : token0Average
+      const token0Avg1 = token0Average % 0 ? token0Average % 0 : token0Average
+      const token0Avg0USD = parseFloat(formatEther(reserve0)) * token0Avg0
+      const token0Avg1USD = parseFloat(formatEther(reserve0)) * token0Avg1
 
-      const debtTotalValue =
-        (providedTokenAmount * parseFloat(leverageValue) - providedTokenAmount) * parseFloat(formatEther(reserve0))
+      const token0debtTotalValue =
+        (token0Amount * parseFloat(leverageValue) - token0Amount) *
+        (token0.symbol == 'USDC' ? 1 : parseFloat(formatEther(reserve0)))
 
-      const totalValue = t1USD + t2USD
-      const assetsValue = totalValue - t1USD
+      const token0totalUSD = token0Avg0USD + token0Avg1USD
 
-      const positionValue = average
+      const token0AssetsValue = token0totalUSD - token0Avg0USD
+
+      const token0PositionValue =
+        token1.symbol == 'USDC' ? token0Average * parseFloat(formatEther(reserve1)) : token0Average
+
+      const token1Amount = parseFloat(token1.value || '0')
+      const token1Average = (token1Amount * parseFloat(leverageValue)) / 2
+      const token1Avg0 = token1Average % token1Amount ? token1Average % token1Amount : token1Average
+      const token1Avg1 = token1Average % 0 ? token1Average % 0 : token1Average
+      const token1Avg0USD = token1.symbol == 'USDC' ? 1 * token1Avg0 : parseFloat(formatEther(reserve0)) * token1Avg0
+      const token1Avg1USD = token1.symbol == 'USDC' ? 1 * token1Avg1 : parseFloat(formatEther(reserve0)) * token1Avg1
+
+      const token1debtTotalValue =
+        (token1Amount * parseFloat(leverageValue) - token1Amount) *
+        (token1.symbol == 'USDC' ? 1 : parseFloat(formatEther(reserve0)))
+
+      const token1totalUSD = token1Avg0USD + token1Avg1USD
+
+      const token1AssetsValue = token1totalUSD - token1Avg0USD
+
+      const token1PositionValue =
+        token1.symbol == 'USDC' ? token1Average * parseFloat(formatEther(reserve1)) : token1Average
+
+      const debtTotalValue = token0debtTotalValue + token1debtTotalValue
+
+      const assetsValue = token0AssetsValue + token1AssetsValue
+
+      const positionValue = token0PositionValue + token1PositionValue
 
       return {
-        providedTokenAmount,
+        token0Amount,
+        token1Amount,
         assetsValue,
         positionValue,
         debtTotalValue,
@@ -311,14 +358,15 @@ export default function FarmPage({
     }
 
     return {
-      providedTokenAmount: 0,
+      token0Amount: 0,
+      token1Amount: 0,
       assetsValue: 0,
       positionValue: 0,
       debtTotalValue: 0,
       borrowedToken,
       providedToken,
     }
-  }, [reserve0, borrowTokens, leverageValue])
+  }, [reserve0, reserve1, borrowTokens, leverageValue])
 
   const [approving, setApproving] = useState(false)
   const [positioning, setPosition] = useState(false)
@@ -349,60 +397,48 @@ export default function FarmPage({
   }, [approveCallback, setApproving])
 
   const openPosition = useCallback(() => {
-    if (!debtValue?.providedTokenAmount || !debtValue.debtTotalValue || !minDebtSize) return
-    if (debtValue.debtTotalValue > parseFloat(formatEther(minDebtSize))) {
-      setPosition(true)
-      vaultContract
-        .work(
-          positionId ? positionId : 0,
-          '0x44B24138e620a2f24Aa82C66508F0D69337881c1',
-          Zero,
-          parseEther(String(debtValue.debtTotalValue)),
-          0,
-          defaultAbiCoder.encode(
-            ['address', 'bytes'],
-            [
-              '0x7388cdd2b9F678550FBDba03F0b2289BbbDE1c34',
-              defaultAbiCoder.encode(
-                ['uint256', 'uint256'],
-                [parseEther(String(debtValue.providedTokenAmount)), parseEther('0')]
-              ),
-            ]
-          )
+    if (!debtValue?.token0Amount || !debtValue?.token1Amount || !debtValue.debtTotalValue || !minDebtSize) return
+
+    setPosition(true)
+    vaultContract
+      .work(
+        positionId ? positionId : 0,
+        '0x44B24138e620a2f24Aa82C66508F0D69337881c1',
+        Zero,
+        parseEther(String(debtValue.debtTotalValue)),
+        0,
+        defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [
+            '0x7388cdd2b9F678550FBDba03F0b2289BbbDE1c34',
+            defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              [parseEther(String(debtValue.token0Amount)), parseEther(String(debtValue.token1Amount))]
+            ),
+          ]
         )
-        .then(async (res) => {
-          await res
-            .wait()
-            .then((value) => {
-              addPopup(
-                {
-                  txn: {
-                    hash: value.transactionHash,
-                    success: value.status ? true : false,
-                    summary: `Successfully ${positionId == '0' ? 'opened' : 'adjust'}`,
-                  },
-                },
-                value.transactionHash
-              )
-            })
-            .finally(() => setPosition(false))
-        })
-        .catch((err) => {
-          console.log(err)
-          setPosition(false)
-        })
-    } else {
-      addPopup(
-        {
-          txn: {
-            hash: undefined,
-            success: false,
-            summary: `Debt Value must be greater than ${format(formatEther(minDebtSize))}`,
-          },
-        },
-        undefined
       )
-    }
+      .then(async (res) => {
+        await res
+          .wait()
+          .then((value) => {
+            addPopup(
+              {
+                txn: {
+                  hash: value.transactionHash,
+                  success: value.status ? true : false,
+                  summary: `Successfully ${positionId == '0' ? 'opened' : 'adjust'}`,
+                },
+              },
+              value.transactionHash
+            )
+          })
+          .finally(() => setPosition(false))
+      })
+      .catch((err) => {
+        console.log(err)
+        setPosition(false)
+      })
   }, [vaultContract, minDebtSize, debtValue, positionId, addPopup])
 
   // useEffect(() => {
@@ -480,7 +516,6 @@ export default function FarmPage({
                 <SeachWrapper>
                   <RowBetween>
                     <InputWrapper
-                      disabled={t.active}
                       placeholder="0.00"
                       value={t.value ?? ''}
                       onUserInput={(v) => handleAmountValueInput(i, v)}
@@ -589,7 +624,16 @@ export default function FarmPage({
             <SummaryCardChildren gap="16px">
               <FarmText fontSize={24}>Summary</FarmText>
               <RowBetween>
-                <FarmText>Assets Supplied(Equity Value before fees)</FarmText>
+                <FarmText>
+                  Assets Supplied
+                  <MouseoverTooltipContent
+                    content={'Assets Supplied(Equity Value before fees)'}
+                    bgColor={theme.bg1}
+                    color={theme.text1}
+                  >
+                    <StyledInfo />
+                  </MouseoverTooltipContent>
+                </FarmText>
                 <FarmText>
                   {borrowTokens[0].value ? borrowTokens[0].value : '0'} {borrowTokens[0].symbol} +{' '}
                   {borrowTokens[1].value ? borrowTokens[1].value : '0'} {borrowTokens[1].symbol}
@@ -650,22 +694,30 @@ export default function FarmPage({
                   <Trans>Approve {payTokenCurrency?.wrapped?.symbol}</Trans>
                 )}
               </ButtonFarm>
-            ) : (
-              <ButtonFarm marginRight={32} onClick={openPosition} disabled={farmButtonStatus || positioning}>
-                {positionId == '0' ? (
-                  positioning ? (
-                    <Dots>Farming</Dots>
+            ) : debtValue ? (
+              debtValue.debtTotalValue > parseFloat(formatEther(minDebtSize)) &&
+              debtValue.debtTotalValue < parseFloat(formatEther(remainingQuota)) ? (
+                <ButtonFarm marginRight={32} onClick={openPosition} disabled={farmButtonStatus || positioning}>
+                  {farmButtonStatus ? (
+                    'Insufficient wallet balance'
+                  ) : positionId == '0' ? (
+                    positioning ? (
+                      <Dots>Farming</Dots>
+                    ) : (
+                      'Farm'
+                    )
+                  ) : positioning ? (
+                    <Dots>Adjust Farming</Dots>
                   ) : (
-                    'Farm'
-                  )
-                ) : positioning ? (
-                  <Dots>Adjust Farming</Dots>
-                ) : (
-                  'Adjust Farm'
-                )}
-                {}
-              </ButtonFarm>
-            )}
+                    'Adjust Farm'
+                  )}
+                </ButtonFarm>
+              ) : (
+                `Debt Value must be greater than ${format(formatEther(minDebtSize))} 小于 ${format(
+                  formatEther(remainingQuota)
+                )} `
+              )
+            ) : null}
             <SimulatorButton>Simulator</SimulatorButton>
           </ButtonWrapper>
         </AutoColumn>

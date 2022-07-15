@@ -73,7 +73,6 @@ const RadioComponents = styled(Radio)`
   } */
 `
 export const FarmText = styled(Text)`
-  line-height: 16px;
   font-weight: 700;
 `
 const FarmHeader = styled(LendHeader)`
