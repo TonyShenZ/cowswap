@@ -713,9 +713,10 @@ export default function FarmPage({
                   )}
                 </ButtonFarm>
               ) : (
-                `Debt Value must be greater than ${format(formatEther(minDebtSize))} 小于 ${format(
-                  formatEther(remainingQuota)
-                )} `
+                <ButtonFarm marginRight={32} disabled>
+                  Debt Value must be greater than ${format(formatEther(minDebtSize))} less than $
+                  {format(formatEther(remainingQuota))}
+                </ButtonFarm>
               )
             ) : null}
             {/* <SimulatorButton>Simulator</SimulatorButton> */}
