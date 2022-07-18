@@ -494,7 +494,7 @@ export default function OrderBook(props: RouteComponentProps) {
       <OrderBookWrapper>
         <TransactionHeader />
         <TransactionContent>
-          <div />
+          <Handicap />
           <MarkerOrderWrapper gap="5px">
             <TradingView />
             <OrderWrapper>
@@ -551,7 +551,7 @@ export default function OrderBook(props: RouteComponentProps) {
               </Tabs>
             </OrderWrapper>
           </MarkerOrderWrapper>
-          <div />
+          <Transactions />
         </TransactionContent>
         <Entrusts />
       </OrderBookWrapper>

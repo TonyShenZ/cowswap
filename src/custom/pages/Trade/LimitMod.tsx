@@ -23,7 +23,6 @@ import {
 } from 'components/Button'
 import Card, { GreyCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
-import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import CurrencyLogo from 'components/CurrencyLogo'
 import Loader from 'components/Loader'
 import { /* Row, */ AutoRow /*, RowFixed */, RowBetween, RowFixed } from 'components/Row'
@@ -64,7 +63,7 @@ import {
   useHighFeeWarning,
   useUnknownImpactWarning,
 } from 'state/swap/hooks'
-import { useExpertModeManager, useRecipientToggleManager } from 'state/user/hooks'
+import { useExpertModeManager } from 'state/user/hooks'
 import { /* HideSmall, */ LinkStyledButton, TYPE, ButtonSize } from 'theme'
 // import { computeFiatValuePriceImpact } from 'utils/computeFiatValuePriceImpact'
 // import { getTradeVersion } from 'utils/getTradeVersion'
@@ -84,7 +83,7 @@ import AdvancedSwapDetailsDropdown from 'components/swap/AdvancedSwapDetailsDrop
 import { formatSmart } from 'utils/format'
 import { RowSlippage } from 'components/swap/TradeSummary/RowSlippage'
 import usePrevious from 'hooks/usePrevious'
-import { Inputs, StyledAppBody } from './styleds'
+import { StyledAppBody } from './styleds'
 import { ApplicationModal } from 'state/application/reducer'
 import { OperationType } from 'components/TransactionConfirmationModal'
 import AffiliateStatusCheck from 'components/AffiliateStatusCheck'
@@ -121,7 +120,6 @@ export default function Limit({
   FeesExceedFromAmountMessage,
   BottomGrouping,
   SwapButton,
-  ArrowWrapperLoader,
   Price,
   HighFeeWarning,
   NoImpactWarning,
@@ -179,8 +177,6 @@ export default function Limit({
 
   // for expert mode
   const [isExpertMode] = useExpertModeManager()
-
-  const [recipientToggleVisible] = useRecipientToggleManager()
 
   // get version from the url
   // const toggledVersion = useToggledVersion()
@@ -286,8 +282,7 @@ export default function Limit({
   const fiatValueInput = useHigherUSDValue(parsedAmounts[Field.INPUT])
   const fiatValueOutput = useHigherUSDValue(parsedAmounts[Field.OUTPUT])
 
-  const { onSwitchTokens, onCurrencySelection, onUserInput, onLimitPriceInput, onChangeRecipient } =
-    useSwapActionHandlers()
+  const { onCurrencySelection, onUserInput, onLimitPriceInput, onChangeRecipient } = useSwapActionHandlers()
 
   // const isValid = !swapInputError
   const isValid = !swapInputError && feeWarningAccepted && impactWarningAccepted // mod
@@ -335,13 +330,6 @@ export default function Limit({
     swapErrorMessage: undefined,
     txHash: undefined,
   })
-
-  const formattedAmounts = {
-    [independentField]: typedValue,
-    [dependentField]: showWrap
-      ? parsedAmounts[independentField]?.toExact() ?? ''
-      : formatSmart(parsedAmounts[dependentField], AMOUNT_PRECISION) ?? '',
-  }
 
   /* const userHasSpecifiedInputOutput = Boolean(
     currencies[Field.INPUT] && currencies[Field.OUTPUT] && parsedAmounts[independentField]?.greaterThan(JSBI.BigInt(0))
@@ -1132,6 +1120,21 @@ export default function Limit({
 
       <NetworkAlert />
       <AffiliateStatusCheck />
+      <ConfirmLimitModal
+        isOpen={showConfirm}
+        trade={trade}
+        originalTrade={tradeToConfirm}
+        onAcceptChanges={handleAcceptChanges}
+        attemptingTxn={attemptingTxn}
+        txHash={txHash}
+        recipient={recipient}
+        allowedSlippage={allowedSlippage}
+        priceImpact={priceImpact}
+        onConfirm={handleSwap}
+        swapErrorMessage={swapErrorMessage}
+        onDismiss={handleConfirmDismiss}
+      />
+
       <StyledAppBody className={className}>
         <RowBetween>
           <BuyTrading />
