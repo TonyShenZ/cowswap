@@ -311,6 +311,8 @@ export default function FarmPage({
       const token0Avg0USD = parseFloat(formatEther(reserve0)) * token0Avg0
       const token0Avg1USD = parseFloat(formatEther(reserve0)) * token0Avg1
 
+      console.log(token0Average, token0Avg0, token0Avg1)
+
       const token0debtTotalValue =
         (token0Amount * parseFloat(leverageValue) - token0Amount) *
         (token0.symbol == 'USDC' ? 1 : parseFloat(formatEther(reserve0)))
@@ -320,7 +322,7 @@ export default function FarmPage({
       const token0AssetsValue = token0totalUSD - token0Avg0USD
 
       const token0PositionValue =
-        token1.symbol == 'USDC' ? token0Average * parseFloat(formatEther(reserve1)) : token0Average
+        token0.symbol == 'USDC' ? token0Average * parseFloat(formatEther(reserve1)) : token0Average
 
       const token1Amount = parseFloat(token1.value || '0')
       const token1Average = (token1Amount * parseFloat(leverageValue)) / 2
