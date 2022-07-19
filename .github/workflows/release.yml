@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 12 * * 1-4' # every day 12:00 UTC Monday-Thursday
+
+    # manual trigger
+  workflow_dispatch:
+
+# The tasks that this workflow needs to perform
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # pull code
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+      - uses: srt32/git-actions@v0.0.3
+        with:
+          args: git submodule update --init --recursive
+      # Create a node environment
+      - name: use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      # Download project dependencies
+      - name: yarn
+        run: yarn
+      # build
+      - name: yarn run build
+        run: yarn build
+      - name: setup aliyun oss
+        uses: manyuanrong/setup-ossutil@master
+        with:
+          endpoint: oss-cn-hongkong.aliyuncs.com
+          access-key-id: ${{ secrets.OSS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_KEY_SECRET }}
+      - name: cp aliyun oss
+        run: ossutil cp -rf build/ oss://demo-swap/
